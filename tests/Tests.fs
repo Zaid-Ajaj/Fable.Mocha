@@ -26,4 +26,17 @@ let secondModuleTests =
             Expect.areEqual 3.1415 pi 
     ]
 
-Mocha.runTests [ mochaTests; secondModuleTests ]
+let structuralEqualityTests = 
+    testList "testing records" [
+        testCase "they are equal" <| fun _ ->
+            let expected = {| one = "one"; two = 2 |}
+            let actual = {| one = "one"; two = 2 |}
+            Expect.areEqual expected actual
+
+        testCase "they are not equal" <| fun _ ->
+            let expected = {| one = "one"; two = 1 |}
+            let actual = {| one = "one"; two = 2 |}
+            Expect.notEqual expected actual
+    ]
+
+Mocha.runTests [ mochaTests; secondModuleTests; structuralEqualityTests ]
