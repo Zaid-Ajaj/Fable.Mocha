@@ -18,9 +18,16 @@ module Test =
 [<RequireQualifiedAccess>]
 module Expect = 
     let areEqual expected actual : unit =
-        if expected = actual 
-        then Assert.AreEqual(expected, actual)
-        else failwithf "Expected %A but got %A" expected actual
+        Assert.AreEqual(expected, actual)
+
+    let notEqual expected actual : unit =
+        Assert.NotEqual(expected, actual)
+
+    let areEqualWithMsg msg expected actual : unit =
+        Assert.AreEqual(expected, actual, msg)
+
+    let notEqualWithMsg msg expected actual : unit =
+        Assert.NotEqual(expected, actual, msg)
 
     let isTrue cond = areEqual true cond 
     let isFalse cond = areEqual false cond 
