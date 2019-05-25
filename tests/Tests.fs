@@ -21,6 +21,14 @@ let mochaTests =
                 let answer = x * 2
                 Expect.areEqual 42 answer
             }
+        
+        ptestCase "skipping this one" <| fun _ ->
+            failwith "Shouldn't be running this test"
+
+        ptestCaseAsync "skipping this one async" <| fun _ ->
+            async {
+                failwith "Shouldn't be running this test"
+            }
     ]
 
 let secondModuleTests =
@@ -51,9 +59,20 @@ let nestedTestCase =
         ]
     ]
 
+let focusedTestsCases =
+    testList "Focused" [
+        ftestCase "Focused sync test" <| fun _ ->
+            Expect.areEqual (1 + 1) 2
+        ftestCaseAsync "Focused async test" <| fun _ ->
+            async {
+                Expect.areEqual (1 + 1) 2
+            }
+    ]
+
 Mocha.runTests [
     mochaTests
     secondModuleTests
     structuralEqualityTests
     nestedTestCase
+    // focusedTestsCases
 ]

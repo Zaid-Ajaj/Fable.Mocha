@@ -199,3 +199,6 @@ bundle.js
 bundle.js.map
 dist/*
 !dist/index.html
+
+#ionide
+.ionide/
