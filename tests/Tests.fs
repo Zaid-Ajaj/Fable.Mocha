@@ -1,32 +1,37 @@
-module Tests 
+module Tests
 
 open Fable.Mocha
 
-let mochaTests = 
+let mochaTests =
     testList "Mocha framework tests" [
-        testCase "testCase works" <| fun () -> 
+
+        testCase "testCase works" <| fun () ->
             Expect.areEqual (1 + 1) 2
-   
-        testCase "isFalse works" <| fun () -> 
+
+        testCase "isFalse works" <| fun () ->
             Expect.isFalse (1 = 2)
+
+        testCase "areEqual with msg" <| fun _ ->
+            Expect.areEqualWithMsg  1 1 "They are the same"
 
         testCaseAsync "testCaseAsync works" <| fun () ->
             async {
+                do! Async.Sleep 1000
                 let! x = async { return 21 }
                 let answer = x * 2
                 Expect.areEqual 42 answer
             }
     ]
 
-let secondModuleTests = 
-    testList "secondModuleModule" [
+let secondModuleTests =
+    testList "second Module tests" [
         testCase "module works properly" <| fun _ ->
             let answer = 31415.0
             let pi = answer / 10000.0
-            Expect.areEqual 3.1415 pi 
+            Expect.areEqual 3.1415 pi
     ]
 
-let structuralEqualityTests = 
+let structuralEqualityTests =
     testList "testing records" [
         testCase "they are equal" <| fun _ ->
             let expected = {| one = "one"; two = 2 |}
@@ -39,4 +44,16 @@ let structuralEqualityTests =
             Expect.notEqual expected actual
     ]
 
-Mocha.runTests [ mochaTests; secondModuleTests; structuralEqualityTests ]
+let nestedTestCase =
+    testList "Nested" [
+        testList "Nested even more" [
+            testCase "Nested test case" <| fun _ -> Expect.isTrue true
+        ]
+    ]
+
+Mocha.runTests [
+    mochaTests
+    secondModuleTests
+    structuralEqualityTests
+    nestedTestCase
+]

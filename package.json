@@ -3,13 +3,19 @@
   "scripts": {
     "build": "fable-splitter tests -o dist/tests --commonjs",
     "pretest": "fable-splitter tests -o dist/tests --commonjs",
-    "test": "mocha dist/tests",
-    "publish": "fable build.fsx --run clean build test publish"
+    "test": "mocha dist/tests --timeout 5000",
+    "publish": "fable build.fsx --run clean build test publish",
+    "start": "webpack-dev-server",
+    "build-for-browser": "webpack"
   },
   "dependencies": {
     "fable-compiler": "^2.3.3",
     "fable-compiler-js": "^1.0.2",
+    "fable-loader": "^2.1.7",
     "fable-splitter": "^2.1.6",
-    "mocha": "^6.0.2"
+    "mocha": "^6.0.2",
+    "webpack": "^4.32.2",
+    "webpack-cli": "^3.3.2",
+    "webpack-dev-server": "^3.4.1"
   }
 }
