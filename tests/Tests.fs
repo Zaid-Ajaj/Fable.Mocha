@@ -2,10 +2,6 @@ module Tests
 
 open Fable.Mocha
 
-
-
-
-
 let mochaTests =
     testList "Mocha framework tests" [
 
@@ -25,7 +21,7 @@ let mochaTests =
                 let answer = x * 2
                 Expect.areEqual 42 answer
             }
-        
+
         ptestCase "skipping this one" <| fun _ ->
             failwith "Shouldn't be running this test"
 

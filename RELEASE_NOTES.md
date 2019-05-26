@@ -1,3 +1,7 @@
+### 2.1.0
+
+* Focused States support both for Mocha and browser by @TheAngryByrd
+
 ### 2.0.0
 
 * Supporting arbitrary nested test lists and test cases
