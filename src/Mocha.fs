@@ -71,6 +71,8 @@ module private Html =
     let appendChild (parent: IDocElement) (child: IDocElement) : unit = jsNative
     [<Emit("document.getElementById($0)")>]
     let findElement (id: string) : IDocElement = jsNative
+    [<Emit("document.getElementsByClassName($0).length")>]
+    let countElementsByClass (value: string) : int = jsNative
     [<Emit("document.body")>]
     let body : IDocElement = jsNative
     [<Emit("$1.innerHTML = $0")>]
@@ -101,8 +103,7 @@ module Mocha =
         match test with
         | SyncTest(_,_,Focused) -> true
         | AsyncTest(_,_,Focused) -> true
-        | TestList(_,tests) ->
-            List.exists isFocused tests
+        | TestList(_,tests) -> List.exists isFocused tests
         | _ -> false
 
     let containsFocused (tests: TestCase list) =
@@ -111,14 +112,23 @@ module Mocha =
     let private runSyncTestInBrowser name test padding =
         try
             test()
-            Html.simpleDiv [ ("style",sprintf "font-size:16px; padding-left:%dpx; color:green" padding) ] (sprintf "✔ %s" name)
+            Html.simpleDiv [
+                ("data-test", name)
+                ("class", "passed")
+                ("style",sprintf "font-size:16px; padding-left:%dpx; color:green" padding)
+            ] (sprintf "✔ %s" name)
         with
         | ex ->
             let error : Html.Node = { Tag = "pre"; Attributes = [ "style", "font-size:16px;color:red;margin:10px; padding:10px; border: 1px solid red; border-radius: 10px" ]; Content = ex.Message; Children = [] }
             Html.div [ ] [
-                Html.simpleDiv [ ("style",sprintf "font-size:16px; padding-left:%dpx; color:red" padding) ] (sprintf "✘ %s" name)
+                Html.simpleDiv [
+                    ("data-test", name)
+                    ("class", "failed");
+                    ("style",sprintf "font-size:16px; padding-left:%dpx; color:red" padding)
+                ] (sprintf "✘ %s" name)
                 error
             ]
+
     let private runAsyncTestInBrowser name test padding =
         let id = Guid.NewGuid().ToString()
         async {
@@ -127,43 +137,65 @@ module Mocha =
             | Choice1Of2 () ->
                 let div = Html.findElement id
                 Html.setInnerHtml (sprintf "✔ %s" name) div
+                Html.setAttr "class" "passed" div
                 Html.setAttr "style" (sprintf "font-size:16px; padding-left:%dpx;color:green" padding) div
             | Choice2Of2 err ->
                 let div = Html.findElement id
                 Html.setInnerHtml (sprintf "✘ %s" name) div
                 let error : Html.Node = { Tag = "pre"; Attributes = [ "style", "margin:10px; padding:10px; border: 1px solid red; border-radius: 10px" ]; Content = err.Message; Children = [] }
                 Html.setAttr "style" (sprintf "font-size:16px; padding-left:%dpx;color:red" padding) div
+                Html.setAttr "class" "failed" div
                 Html.appendChild div (Html.createNode error)
         } |> Async.StartImmediate
-        Html.simpleDiv [ ("id", id); ("style",sprintf "font-size:16px; padding-left:%dpx;color:gray" padding) ] (sprintf "⏳ %s" name)
+        Html.simpleDiv [ ("id", id); ("class", "executing"); ("style",sprintf "font-size:16px; padding-left:%dpx;color:gray" padding) ] (sprintf "⏳ %s" name)
+
     let rec private renderBrowserTests (hasFocusedTests : bool) (tests: TestCase list) (padding: int) : Html.Node list =
         tests
         |> List.map(function
             | SyncTest (name, test, focus) ->
                 match focus with
                 | Normal when hasFocusedTests ->
-                    Html.simpleDiv [ ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding) ] (sprintf "🚧 skipping '%s' due to other focused tests" name)
+                    Html.simpleDiv [
+                        ("class", "pending")
+                        ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding)
+                    ] (sprintf "🚧 skipping '%s' due to other focused tests" name)
                 | Normal ->
                     runSyncTestInBrowser name test padding
                 | Pending ->
-                    Html.simpleDiv [ ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding) ] (sprintf "🚧 skipping '%s' due to it being marked as pending" name)
+                    Html.simpleDiv [
+                        ("class", "pending")
+                        ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding)
+                    ] (sprintf "🚧 skipping '%s' due to it being marked as pending" name)
                 | Focused ->
                     runSyncTestInBrowser name test padding
 
             | AsyncTest (name, test, focus) ->
                 match focus with
                 | Normal when hasFocusedTests ->
-                    Html.simpleDiv [ ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding) ] (sprintf "🚧 skipping '%s' due to other focused tests" name)
+                    Html.simpleDiv [
+                        ("class", "pending")
+                        ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding)
+                    ] (sprintf "🚧 skipping '%s' due to other focused tests" name)
                 | Normal ->
                     runAsyncTestInBrowser name test padding
                 | Pending ->
-                    Html.simpleDiv [ ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding) ] (sprintf "🚧 skipping '%s' due to it being marked as pending" name)
+                    Html.simpleDiv [
+                        ("class", "pending")
+                        ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding)
+                    ] (sprintf "🚧 skipping '%s' due to it being marked as pending" name)
                 | Focused ->
                     runAsyncTestInBrowser name test padding
             | TestList (name, testCases) ->
                 let tests = Html.div [] (renderBrowserTests hasFocusedTests testCases (padding + 20))
-                let header : Html.Node = { Tag = "div"; Attributes = [ ("style", sprintf "font-size:20px; padding:%dpx" padding) ]; Content = name; Children = [] }
-                Html.div [ ("style", "margin-bottom:20px;") ] [ header; tests ])
+                let header : Html.Node = {
+                    Tag = "div";
+                    Attributes = [
+                        ("class", "module")
+                        ("data-module", name)
+                        ("style", sprintf "font-size:20px; padding:%dpx" padding) ];
+                    Content = name;
+                    Children = [ tests ] }
+                Html.div [ ("style", "margin-bottom:20px;") ] [ header ])
 
     let private configureAsyncTest test =
         (fun finished ->
@@ -173,23 +205,53 @@ module Mocha =
                 | Choice2Of2 err -> do finished(unbox err)
             } |> Async.StartImmediate )
 
+    let rec invalidateTestResults() =
+        async {
+            let passedCount = Html.countElementsByClass "passed"
+            let failedCount = Html.countElementsByClass "failed"
+            let executingCount = Html.countElementsByClass "executing"
+            let skippedCount = Html.countElementsByClass "pending"
+            let total = passedCount + failedCount + executingCount + skippedCount
+            Html.setInnerHtml (sprintf "Test Results (%d total)" total) (Html.findElement "total-tests")
+            Html.setInnerHtml (sprintf "✔ %d passed" passedCount) (Html.findElement "passed-tests")
+            Html.setInnerHtml (sprintf "✘ %d failed" failedCount) (Html.findElement "failed-tests")
+            Html.setInnerHtml (sprintf "⏳ %d being executed (async)" executingCount) (Html.findElement "executing-tests")
+            Html.setInnerHtml (sprintf "🚧 %d pending" skippedCount) (Html.findElement "skipped-tests")
+            if executingCount > 0 then
+                do! Async.Sleep 1000
+                do invalidateTestResults()
+            else
+                return ()
+        }
+        |> Async.StartImmediate
+
     let rec runTests (tests: TestCase list) =
         if Env.insideBrowser || Env.insideWorker then
             let hasFocusedTests = containsFocused tests
-            let container = Html.div [ ("style", "padding:20px;") ] (renderBrowserTests hasFocusedTests tests 0)
+            let renderedTests = renderBrowserTests hasFocusedTests tests 0
+            let testResults =
+                Html.div [ ("style", "margin-bottom: 20px") ] [
+                    Html.simpleDiv [ ("id", "total-tests"); ("style", "font-size:20px; margin-bottom:5px") ] "Test Results"
+                    Html.simpleDiv [ ("id", "passed-tests"); ("style", "color:green; margin-left:5px;") ] "Passed"
+                    Html.simpleDiv [ ("id", "skipped-tests"); ("style", "color:#B8860B") ] "Pending"
+                    Html.simpleDiv [ ("id", "failed-tests"); ("style", "color:red;margin-left:5px") ] "Failed"
+                    Html.simpleDiv [ ("id", "executing-tests"); ("style", "color:gray;margin-left:5px") ] "Executing"
+                ]
+
+            let container = Html.div [ ("style", "padding:20px;") ] [ yield testResults; yield! renderedTests ]
             let element = Html.createNode container
             Html.appendChild Html.body element
+            invalidateTestResults()
         else
         for testCase in tests do
             match testCase with
-            | SyncTest (msg, test, focus) -> describe msg (fun () -> 
+            | SyncTest (msg, test, focus) -> describe msg (fun () ->
                 match focus with
                 | Normal -> it msg test
                 | Pending -> itSkip msg test
-                | Focused -> itOnly msg test
-                )
+                | Focused -> itOnly msg test)
             | AsyncTest (msg, test, focus) ->
-                match focus with 
+                match focus with
                 | Normal -> itAsync msg (configureAsyncTest test)
                 | Pending -> itSkipAsync msg (configureAsyncTest test)
                 | Focused -> itOnlyAsync msg (configureAsyncTest test)
