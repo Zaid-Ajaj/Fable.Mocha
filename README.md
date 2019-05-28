@@ -4,7 +4,7 @@
 [Fable](https://github.com/fable-compiler/Fable) library for testing. Inspired by the popular [Expecto](https://github.com/haf/expecto) library for F# and adopts the `testList`, `testCase` and `testCaseAsync` primitives for defining tests.
 
 The tests themselves are written once and can run:
- - [Inside node.js using Mocha](#running-the-tests-on-node.js-with-mocha)
+ - [Inside node.js using Mocha](#running-the-tests-on-nodejs-with-mocha)
  - [Inside the broswer](#running-the-tests-using-the-browser) (standalone)
  - [Inside dotnet with Expecto](#running-the-tests-on-dotnet-with-Expecto)
  - To Do: Inside dotnet standalone (PR's are welcome)
