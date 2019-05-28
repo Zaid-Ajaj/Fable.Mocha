@@ -82,11 +82,13 @@ let allTests = [
     // focusedTestsCases
 ]
 
-#if FABLE_COMPILER
-Mocha.runTests allTests
-#else
 [<EntryPoint>]
 let main args =
+
+#if FABLE_COMPILER
+    Mocha.runTests allTests
+    0
+#else
     testList "All" allTests
     |> runTestsWithArgs defaultConfig args
 #endif
