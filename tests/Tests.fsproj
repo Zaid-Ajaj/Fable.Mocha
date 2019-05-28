@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <OutputType>exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Tests.fs" />
@@ -11,6 +12,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <PackageReference Include="expecto" Version="8.10.1" />
     <PackageReference Include="Fable.Core" Version="3.0.0" />
     <PackageReference Include="Fable.SimpleJson" Version="3.0.0" />
   </ItemGroup>

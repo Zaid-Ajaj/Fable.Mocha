@@ -11,7 +11,7 @@ type FocusState =
 
 type TestCase =
     | SyncTest of string * (unit -> unit) * FocusState
-    | AsyncTest of string * (unit -> Async<unit>) * FocusState
+    | AsyncTest of string * (Async<unit>) * FocusState
     | TestList of string * TestCase list
 
 [<AutoOpen>]
@@ -33,23 +33,23 @@ module private Env =
 
 [<RequireQualifiedAccess>]
 module Expect =
-    let areEqual expected actual : unit =
-        Assert.AreEqual(expected, actual)
-
-    let notEqual expected actual : unit =
-        Assert.NotEqual(expected, actual)
-
-    let areEqualWithMsg expected actual msg : unit =
+    let equal actual expected msg  : unit =
         Assert.AreEqual(expected, actual, msg)
 
-    let notEqualWithMsg expected actual msg : unit =
+    let notEqual actual expected msg  : unit =
         Assert.NotEqual(expected, actual, msg)
 
-    let isTrue cond = areEqual cond true
-    let isFalse cond = areEqual cond false
-    let isZero number = areEqual 0 number
-    let isEmpty (x: 'a seq) = areEqual true (Seq.isEmpty x)
-    let pass() = areEqual true true
+    // let areEqualWithMsg expected actual msg : unit =
+    //     Assert.AreEqual(expected, actual, msg)
+
+    // let notEqualWithMsg expected actual msg : unit =
+    //     Assert.NotEqual(expected, actual, msg)
+
+    let isTrue cond = equal cond true
+    let isFalse cond = equal cond false
+    let isZero number = equal 0 number
+    let isEmpty (x: 'a seq) = equal true (Seq.isEmpty x)
+    let pass() = equal true true
 
 
 
@@ -133,7 +133,7 @@ module Mocha =
         let id = Guid.NewGuid().ToString()
         async {
             do! Async.Sleep 1000
-            match! Async.Catch(test()) with
+            match! Async.Catch(test) with
             | Choice1Of2 () ->
                 let div = Html.findElement id
                 Html.setInnerHtml (sprintf "✔ %s" name) div
@@ -200,7 +200,7 @@ module Mocha =
     let private configureAsyncTest test =
         (fun finished ->
             async {
-                match! Async.Catch(test()) with
+                match! Async.Catch(test) with
                 | Choice1Of2 () -> do finished()
                 | Choice2Of2 err -> do finished(unbox err)
             } |> Async.StartImmediate )
