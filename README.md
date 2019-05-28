@@ -1,7 +1,13 @@
 # Fable.Mocha [![Nuget](https://img.shields.io/nuget/v/Fable.Mocha.svg?colorB=green)](https://www.nuget.org/packages/Fable.Mocha) [![Build status](https://ci.appveyor.com/api/projects/status/3s3xorc0oevkuk4w?svg=true)](https://ci.appveyor.com/project/Zaid-Ajaj/fable-mocha)
 
 
-[Fable](https://github.com/fable-compiler/Fable) library for [Mocha](https://mochajs.org/), a javascript test runner and framework. The API is inspired by the popular [Expecto](https://github.com/haf/expecto) library for F# and adopts the `testList`, `testCase` and `testCaseAsync` primitives for defining tests. The tests can be run inside node.js using `mocha` or in the browser using the built-in test runner (0 dependencies).
+[Fable](https://github.com/fable-compiler/Fable) library for testing. Inspired by the popular [Expecto](https://github.com/haf/expecto) library for F# and adopts the `testList`, `testCase` and `testCaseAsync` primitives for defining tests.
+
+The tests themselves are written once and can run:
+ - [Inside node.js using Mocha](#running-the-tests-on-node.js-with-mocha)
+ - [Inside the broswer](#running-the-tests-using-the-browser) (standalone)
+ - [Inside dotnet with Expecto](#running-the-tests-on-dotnet-with-Expecto)
+ - To Do: Inside dotnet standalone (PR's are welcome)
 
 ![gif](live.gif)
 
@@ -68,10 +74,10 @@ let arithmeticTests =
             }
     ]
 
-Mocha.runTests [ arithmeticTests ]
+Mocha.runTests arithmeticTests
 ```
 
-## Running the tests using node.js
+## Running the tests on node.js with Mocha
 
 Install the actual `mocha` test runner from Npm along side `fable-splitter` that will compile your test project into a node.js application
 ```bash
@@ -83,6 +89,46 @@ Add the following `pretest` and `test` npm scripts to your `package.json` file:
 "test": "mocha dist/tests"
 ```
 Now you can simply run `npm test` in your terminal and it will run the `pretest` script to compile the test project and afterwards the `test` script to actually run the (compiled) tests using mocha.
+
+## Running the tests on dotnet with Expecto
+
+Since the API exactly follows that of Expecto's you can simply run the tests on dotnet as well using Expecto. This way you can check whether your code runs correctly on different platforms whether it is dotnet or node.js. This is achieved using *compiler directives* as follows. First of all you need to install the `Expecto` library from nuget:
+```
+dotnet add package Expecto
+```
+then Add a special compiler directory used from the configuration flag to your `Tests.fsproj`:
+```xml
+<PropertyGroup Condition="'$(Configuration)'=='EXPECTO'">
+  <DefineConstants>$(DefineConstants);EXPECTO</DefineConstants>
+</PropertyGroup>
+```
+This means that the compiler directive called `EXPECTO` will be active when you run your project like this:
+```bash
+dotnet run -c EXPECTO
+```
+which is short for
+```bash
+dotnet run --configuration EXPECTO
+```
+Now from your tests you need to hide the Fable stuff when `EXPECTO` is active, this means opening `Expecto` namespace and ignoring `Fable.Mocha`
+```fs
+#if EXPECTO
+open Expecto
+#else
+open Fable.Mocha
+#endif
+```
+The same goes for the entry point:
+```fs
+[<EntryPoint>]
+let main args =
+#if EXPECTO
+    runTestsWithArgs defaultConfig args allTests
+#else
+    Mocha.runTests allTests
+#endif
+```
+And you are done, the code of the tests themselves doesn't need to change! Of course assuming you don't have platform specific code in there. This feature is made to test pure F# code that should give the same results with dotnet and Fable.
 
 ## Running the tests using the browser
 Trying to use mocha to run tests in the browser will give you headaches as you have to include the compiled individual test files by yourself along with mocha specific dependencies. That's why Fable.Mocha includes a *built-in* test runner for the browser. You don't need to change anything in the existing code, it just works!
@@ -165,5 +211,11 @@ let nestedTests =
         ]
     ]
 
-Mocha.runTests [ firstModuleTests; secondModuleTests; nestedTests ]
+let allTests = testList "All" [
+    firstModuleTests
+    secondModuleTests
+    nestedTests
+]
+
+Mocha.runTests allTests
 ```

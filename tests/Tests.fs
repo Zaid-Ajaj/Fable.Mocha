@@ -1,10 +1,8 @@
 module Tests
 
-
-
 #if EXPECTO
 open Expecto
-#else 
+#else
 open Fable.Mocha
 #endif
 
@@ -31,7 +29,7 @@ let mochaTests =
         ptestCase "skipping this one" <| fun _ ->
             failwith "Shouldn't be running this test"
 
-        ptestCaseAsync "skipping this one async" <| 
+        ptestCaseAsync "skipping this one async" <|
             async {
                 failwith "Shouldn't be running this test"
             }
