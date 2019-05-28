@@ -39,12 +39,6 @@ module Expect =
     let notEqual actual expected msg  : unit =
         Assert.NotEqual(expected, actual, msg)
 
-    // let areEqualWithMsg expected actual msg : unit =
-    //     Assert.AreEqual(expected, actual, msg)
-
-    // let notEqualWithMsg expected actual msg : unit =
-    //     Assert.NotEqual(expected, actual, msg)
-
     let isTrue cond = equal cond true
     let isFalse cond = equal cond false
     let isZero number = equal 0 number
