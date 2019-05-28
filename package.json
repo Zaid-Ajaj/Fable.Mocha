@@ -4,6 +4,7 @@
     "build": "fable-splitter tests -o dist/tests --commonjs",
     "pretest": "fable-splitter tests -o dist/tests --commonjs",
     "test": "mocha dist/tests --timeout 5000",
+    "dotnet-test": "dotnet run -p ./tests/Tests.fsproj -- --summary",
     "publish": "fable build.fsx --run clean build test publish",
     "start": "webpack-dev-server",
     "build-for-browser": "webpack"
