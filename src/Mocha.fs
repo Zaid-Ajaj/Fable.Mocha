@@ -11,7 +11,7 @@ type FocusState =
 
 type TestCase =
     | SyncTest of string * (unit -> unit) * FocusState
-    | AsyncTest of string * (unit -> Async<unit>) * FocusState
+    | AsyncTest of string * (Async<unit>) * FocusState
     | TestList of string * TestCase list
 
 [<AutoOpen>]
@@ -33,23 +33,17 @@ module private Env =
 
 [<RequireQualifiedAccess>]
 module Expect =
-    let areEqual expected actual : unit =
-        Assert.AreEqual(expected, actual)
-
-    let notEqual expected actual : unit =
-        Assert.NotEqual(expected, actual)
-
-    let areEqualWithMsg expected actual msg : unit =
+    let equal actual expected msg  : unit =
         Assert.AreEqual(expected, actual, msg)
 
-    let notEqualWithMsg expected actual msg : unit =
+    let notEqual actual expected msg  : unit =
         Assert.NotEqual(expected, actual, msg)
 
-    let isTrue cond = areEqual cond true
-    let isFalse cond = areEqual cond false
-    let isZero number = areEqual 0 number
-    let isEmpty (x: 'a seq) = areEqual true (Seq.isEmpty x)
-    let pass() = areEqual true true
+    let isTrue cond = equal cond true
+    let isFalse cond = equal cond false
+    let isZero number = equal 0 number
+    let isEmpty (x: 'a seq) = equal true (Seq.isEmpty x)
+    let pass() = equal true true
 
 
 
@@ -106,9 +100,6 @@ module Mocha =
         | TestList(_,tests) -> List.exists isFocused tests
         | _ -> false
 
-    let containsFocused (tests: TestCase list) =
-        List.exists isFocused tests
-
     let private runSyncTestInBrowser name test padding =
         try
             test()
@@ -133,7 +124,7 @@ module Mocha =
         let id = Guid.NewGuid().ToString()
         async {
             do! Async.Sleep 1000
-            match! Async.Catch(test()) with
+            match! Async.Catch(test) with
             | Choice1Of2 () ->
                 let div = Html.findElement id
                 Html.setInnerHtml (sprintf "✔ %s" name) div
@@ -200,7 +191,7 @@ module Mocha =
     let private configureAsyncTest test =
         (fun finished ->
             async {
-                match! Async.Catch(test()) with
+                match! Async.Catch(test) with
                 | Choice1Of2 () -> do finished()
                 | Choice2Of2 err -> do finished(unbox err)
             } |> Async.StartImmediate )
@@ -225,26 +216,8 @@ module Mocha =
         }
         |> Async.StartImmediate
 
-    let rec runTests (tests: TestCase list) =
-        if Env.insideBrowser || Env.insideWorker then
-            let hasFocusedTests = containsFocused tests
-            let renderedTests = renderBrowserTests hasFocusedTests tests 0
-            let testResults =
-                Html.div [ ("style", "margin-bottom: 20px") ] [
-                    Html.simpleDiv [ ("id", "total-tests"); ("style", "font-size:20px; margin-bottom:5px") ] "Test Results"
-                    Html.simpleDiv [ ("id", "passed-tests"); ("style", "color:green; margin-left:5px;") ] "Passed"
-                    Html.simpleDiv [ ("id", "skipped-tests"); ("style", "color:#B8860B") ] "Pending"
-                    Html.simpleDiv [ ("id", "failed-tests"); ("style", "color:red;margin-left:5px") ] "Failed"
-                    Html.simpleDiv [ ("id", "executing-tests"); ("style", "color:gray;margin-left:5px") ] "Executing"
-                ]
-
-            let container = Html.div [ ("style", "padding:20px;") ] [ yield testResults; yield! renderedTests ]
-            let element = Html.createNode container
-            Html.appendChild Html.body element
-            invalidateTestResults()
-        else
-        for testCase in tests do
-            match testCase with
+    let rec private runViaMocha (test: TestCase) =
+        match test with
             | SyncTest (msg, test, focus) -> describe msg (fun () ->
                 match focus with
                 | Normal -> it msg test
@@ -258,4 +231,35 @@ module Mocha =
             | TestList (name, testCases) ->
                 describe name <| fun () ->
                     testCases
-                    |> List.iter (fun x -> runTests [x])
+                    |> List.iter (runViaMocha)
+
+    let runViaDotnet (test: TestCase) =
+        raise (NotImplementedException("Currently not implemented, use Expecto for now."))
+        1
+
+    let rec runTests (test: TestCase) : int=
+        #if FABLE_COMPILER
+        if Env.insideBrowser || Env.insideWorker then
+            let hasFocusedTests = isFocused test
+            let renderedTests = renderBrowserTests hasFocusedTests [test] 0
+            let testResults =
+                Html.div [ ("style", "margin-bottom: 20px") ] [
+                    Html.simpleDiv [ ("id", "total-tests"); ("style", "font-size:20px; margin-bottom:5px") ] "Test Results"
+                    Html.simpleDiv [ ("id", "passed-tests"); ("style", "color:green; margin-left:5px;") ] "Passed"
+                    Html.simpleDiv [ ("id", "skipped-tests"); ("style", "color:#B8860B") ] "Pending"
+                    Html.simpleDiv [ ("id", "failed-tests"); ("style", "color:red;margin-left:5px") ] "Failed"
+                    Html.simpleDiv [ ("id", "executing-tests"); ("style", "color:gray;margin-left:5px") ] "Executing"
+                ]
+
+            let container = Html.div [ ("style", "padding:20px;") ] [ yield testResults; yield! renderedTests ]
+            let element = Html.createNode container
+            Html.appendChild Html.body element
+            invalidateTestResults()
+            0 // Shouldn't return error codes for this path
+        else
+            runViaMocha test
+            0 // Shouldn't return error codes for this path
+        #else
+        runViaDotnet test
+        #endif
+        
