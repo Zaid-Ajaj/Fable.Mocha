@@ -1,10 +1,11 @@
 module Tests
 
 
-#if FABLE_COMPILER
-open Fable.Mocha
-#else
+
+#if EXPECTO
 open Expecto
+#else 
+open Fable.Mocha
 #endif
 
 let mochaTests =
@@ -74,7 +75,7 @@ let focusedTestsCases =
             }
     ]
 
-let allTests = [
+let allTests = testList "All" [
     mochaTests
     secondModuleTests
     structuralEqualityTests
@@ -84,11 +85,8 @@ let allTests = [
 
 [<EntryPoint>]
 let main args =
-
-#if FABLE_COMPILER
-    Mocha.runTests allTests
-    0
+#if EXPECTO
+    runTestsWithArgs defaultConfig args allTests
 #else
-    testList "All" allTests
-    |> runTestsWithArgs defaultConfig args
+    Mocha.runTests allTests
 #endif

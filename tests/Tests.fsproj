@@ -6,11 +6,12 @@
   <ItemGroup>
     <Compile Include="Tests.fs" />
   </ItemGroup>
-
+  <PropertyGroup Condition="'$(Configuration)'=='EXPECTO'">
+    <DefineConstants>$(DefineConstants);EXPECTO</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Fable.Mocha.fsproj" />
   </ItemGroup>
-  
   <ItemGroup>
     <PackageReference Include="expecto" Version="8.10.1" />
     <PackageReference Include="Fable.Core" Version="3.0.0" />
