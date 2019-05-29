@@ -66,7 +66,7 @@ let arithmeticTests =
         testCase "Test for falsehood" <| fun () ->
             Expect.isFalse (1 = 2)
 
-        testCaseAsync "Test async code" <| fun () ->
+        testCaseAsync "Test async code" <|
             async {
                 let! x = async { return 21 }
                 let answer = x * 2
@@ -89,46 +89,6 @@ Add the following `pretest` and `test` npm scripts to your `package.json` file:
 "test": "mocha dist/tests"
 ```
 Now you can simply run `npm test` in your terminal and it will run the `pretest` script to compile the test project and afterwards the `test` script to actually run the (compiled) tests using mocha.
-
-## Running the tests on dotnet with Expecto
-
-Since the API exactly follows that of Expecto's you can simply run the tests on dotnet as well using Expecto. This way you can check whether your code runs correctly on different platforms whether it is dotnet or node.js. This is achieved using *compiler directives* as follows. First of all you need to install the `Expecto` library from nuget:
-```
-dotnet add package Expecto
-```
-then Add a special compiler directory used from the configuration flag to your `Tests.fsproj`:
-```xml
-<PropertyGroup Condition="'$(Configuration)'=='EXPECTO'">
-  <DefineConstants>$(DefineConstants);EXPECTO</DefineConstants>
-</PropertyGroup>
-```
-This means that the compiler directive called `EXPECTO` will be active when you run your project like this:
-```bash
-dotnet run -c EXPECTO
-```
-which is short for
-```bash
-dotnet run --configuration EXPECTO
-```
-Now from your tests you need to hide the Fable stuff when `EXPECTO` is active, this means opening `Expecto` namespace and ignoring `Fable.Mocha`
-```fs
-#if EXPECTO
-open Expecto
-#else
-open Fable.Mocha
-#endif
-```
-The same goes for the entry point:
-```fs
-[<EntryPoint>]
-let main args =
-#if EXPECTO
-    runTestsWithArgs defaultConfig args allTests
-#else
-    Mocha.runTests allTests
-#endif
-```
-And you are done, the code of the tests themselves doesn't need to change! Of course assuming you don't have platform specific code in there. This feature is made to test pure F# code that should give the same results with dotnet and Fable.
 
 ## Running the tests using the browser
 Trying to use mocha to run tests in the browser will give you headaches as you have to include the compiled individual test files by yourself along with mocha specific dependencies. That's why Fable.Mocha includes a *built-in* test runner for the browser. You don't need to change anything in the existing code, it just works!
@@ -181,8 +141,36 @@ Now you can run your tests live using webpack-dev-server or compile the tests an
 ```
 Now if you run `npm start` you can navigate to `http://localhost:8080` to see the results of your tests.
 
+## Running the tests on dotnet with Expecto
+
+Since the API exactly follows that of Expecto's you can simply run the tests on dotnet as well using Expecto. This way you can check whether your code runs correctly on different platforms whether it is dotnet or node.js. This is achieved using *compiler directives* as follows. First of all you need to install the `Expecto` library from nuget:
+```
+dotnet add package Expecto
+```
+Then inside your `Test.fs` file, you can the use the special `FABLE_COMPILER` directive. This directive is active when Fable is compiling the project, if it is not active it means that the project being compiled using dotnet like any other dotnet application.
+
+When Fable is compiling the project, you hide the dotnet specific code (i.e. using Expecto) and when dotnet is compiling the code, you hide the Fable specific code (i.e. using Fable.Mocha).
+```fs
+#if FABLE_COMPILER
+open Fable.Mocha
+#else
+open Expecto
+#endif
+```
+The same goes for the entry point:
+```fs
+[<EntryPoint>]
+let main args =
+#if FABLE_COMPILER
+    Mocha.runTests allTests
+#else
+    runTestsWithArgs defaultConfig args allTests
+#endif
+```
+And you are done, the code of the tests themselves doesn't need to change! Of course assuming you don't have platform specific code in there. This feature is made to test pure F# code that should give the same results with dotnet and Fable.
+
 ### Testing multiple modules
-The function `Mocha.runTests` takes in a list of test modules. Each test module is created using the `testList` function so you can seperate your tests into these modules:
+The function `Mocha.runTests` can take *nested* test lists so you can group multiple test lists under a larger `testList "All"` that combines all the tests
 ```fs
 module Tests
 
