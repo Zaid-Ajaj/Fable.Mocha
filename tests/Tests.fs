@@ -16,11 +16,11 @@ let mochaTests =
             Expect.isFalse (1 = 2) "Should be equal"
 
         testCase "areEqual with msg" <| fun _ ->
-            Expect.equal  1 1 "They are the same"
+            Expect.equal  2 2 "They are the same"
 
         testCaseAsync "testCaseAsync works" <|
             async {
-                do! Async.Sleep 1000
+                do! Async.Sleep 3000
                 let! x = async { return 21 }
                 let answer = x * 2
                 Expect.equal 42 answer "Should be equal"

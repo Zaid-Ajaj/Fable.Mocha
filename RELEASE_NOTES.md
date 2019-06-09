@@ -1,3 +1,7 @@
+### 2.4.0
+
+* Add proper data attributes to the browser runner
+
 ### 2.3.0
 
 * Unify the API to match that of Expecto by @TheAngryByrd (see #6)

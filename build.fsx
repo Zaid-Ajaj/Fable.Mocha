@@ -254,13 +254,43 @@ module private Publish =
                 printfn "Please revert the version change in .fsproj"
                 reraise()
 
-printfn "Args: %s" (String.concat ", " args)
+    let pushNugetR (projFile: string) =
+        let nugetKey =
+            match environVarOrNone "NUGET_KEY" with
+            | Some nugetKey -> nugetKey
+            | None -> failwith "The Nuget API key must be set in a NUGET_KEY environmental variable"
+        // Restore dependencies here so they're updated to latest project versions
+        runList ["dotnet restore"; projFile]
+        try
+            let tempDir = (dirname projFile) </> "temp"
+            removeDirRecursive tempDir
+            runList ["dotnet pack"; projFile; sprintf "-c Release -o %s" tempDir]
+            let pkgName = filenameWithoutExtension projFile
+            let nupkg =
+                dirFiles tempDir
+                |> Seq.tryPick (fun path ->
+                    if path.Contains(pkgName)
+                    then Some(tempDir </> path)
+                    else None)
+                |> function
+                    | Some x -> x
+                    | None -> failwithf "Cannot find .nupgk with name %s" pkgName
+            runList ["dotnet nuget push"; nupkg; "-s nuget.org -k"; nugetKey]
+            removeDirRecursive tempDir
+        with ex ->
+            printfn "Error %s" ex.Message
+            filenameWithoutExtension projFile
+            |> printfn "There's been an error when pushing project: %s"
+            printfn "Please revert the version change in .fsproj"
+            reraise()
 
-let executeTarget = function 
-    | IgnoreCase "publish" -> 
+printfn "Args: [%s]" (String.concat ", " args)
+
+let executeTarget = function
+    | IgnoreCase "publish" ->
         Publish.pushNuget "src/Fable.Mocha.fsproj"
-    
-    | IgnoreCase "clean" -> 
+
+    | IgnoreCase "clean" ->
         removeDirRecursive "src/temp"
         removeDirRecursive "src/bin"
         removeDirRecursive "src/obj"
@@ -268,13 +298,17 @@ let executeTarget = function
         removeDirRecursive "test/obj"
         removeDirRecursive "temp"
 
-    | IgnoreCase "build" -> 
+    | IgnoreCase "build" ->
         runList [ "npm run build" ]
 
     | IgnoreCase "test" ->
         runList [ "npm test" ]
-    
-    | _ -> 
-        ignore() 
+
+    | IgnoreCase "publish-runner" ->
+        Publish.pushNugetR "./headless/Fable.MochaPuppeteerRunner.fsproj"
+
+    | IgnoreCase "publish-runner"
+    | _ ->
+        ignore()
 
 args |> List.iter executeTarget

@@ -5,7 +5,8 @@
 
 The tests themselves are written once and can run:
  - [Inside node.js using Mocha](#running-the-tests-on-nodejs-with-mocha)
- - [Inside the broswer](#running-the-tests-using-the-browser) (standalone)
+ - [Inside the browser](#running-the-tests-using-the-browser) (standalone)
+ - [Inside a headless browser](#running-the-tests-using-headless-browser)
  - [Inside dotnet with Expecto](#running-the-tests-on-dotnet-with-Expecto)
  - To Do: Inside dotnet standalone (PR's are welcome)
 
@@ -140,6 +141,53 @@ Now you can run your tests live using webpack-dev-server or compile the tests an
 "build-for-browser": "webpack"
 ```
 Now if you run `npm start` you can navigate to `http://localhost:8080` to see the results of your tests.
+
+## Running the tests using headless browser
+
+The tests you write in the browser can be easily executed inside a headless browser such you can run them in your CI server. Using a simple console application, install the package `Fable.MochaPuppeteerRunner`:
+```
+mkdir HeadlessTests
+cd HeadlessTests
+dotnet new console -lang F#
+dotnet add package Fable.MochaPuppeteerRunner
+```
+Then change the contents of `Program.fs` into:
+```fsharp
+[<EntryPoint>]
+let main argv =
+    "../public"
+    |> System.IO.Path.GetFullPath
+    |> Puppeteer.runTests
+    |> Async.RunSynchronously
+```
+Where `public` is the directory where the compiled tests, the `bundle.js` file next to `index.html`:
+```
+{repo}
+   |
+   |-- HeadlessTests
+        |-- HeadlessTests.fsproj
+        |-- Program.fs
+
+   |-- public
+        |-- index.html
+        |-- bundle.js
+```
+Also you need to add the `RunWorkingDirectory` property to `HeadlessTests.fsproj` as follows below:
+```xml
+<PropertyGroup>
+  <OutputType>Exe</OutputType>
+  <TargetFramework>netcoreapp3.0</TargetFramework>
+  <RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
+</PropertyGroup>
+```
+Now simply `dotnet run` and the tests will run inside the headless browser after the download finishes.
+
+You can also add a npm build script to run the headless tests after compiling the `Tests` project:
+```
+"test-headless": "webpack && dotnet run --project ./HeadlessTests/HeadlessTests.fsproj"
+```
+
+Remember to gitignore the directory of the downloaded chromium add `.local-chromium` to your gitignore file.
 
 ## Running the tests on dotnet with Expecto
 

@@ -15,7 +15,7 @@ node_modules/
 *.userprefs
 *.dll.mdb
 *.exe.mdb
-
+.local-chromium
 # Build results
 build
 [Dd]ebug/

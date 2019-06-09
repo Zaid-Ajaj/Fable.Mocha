@@ -4,12 +4,14 @@
     "build": "fable-splitter tests -o dist/tests --commonjs",
     "pretest": "fable-splitter tests -o dist/tests --commonjs",
     "test": "mocha dist/tests --timeout 5000",
-    "dotnet-clean": "dotnet clean ./tests/Tests.fsproj", 
+    "dotnet-clean": "dotnet clean ./tests/Tests.fsproj",
     "dotnet-test": "dotnet run -p ./tests/Tests.fsproj",
     "dotnet-expecto": "dotnet run -p ./tests/Tests.fsproj -c EXPECTO -- --summary",
     "publish": "fable build.fsx --run clean build test publish",
+    "publish-runner": "fable build.fsx --run publish-runner",
     "start": "webpack-dev-server",
-    "build-for-browser": "webpack"
+    "build-for-browser": "webpack",
+    "headless-tests": "webpack && dotnet run --project ./integration/integration.fsproj"
   },
   "dependencies": {
     "fable-compiler": "^2.3.3",

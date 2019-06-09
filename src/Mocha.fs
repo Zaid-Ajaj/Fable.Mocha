@@ -138,7 +138,12 @@ module Mocha =
                 Html.setAttr "class" "failed" div
                 Html.appendChild div (Html.createNode error)
         } |> Async.StartImmediate
-        Html.simpleDiv [ ("id", id); ("class", "executing"); ("style",sprintf "font-size:16px; padding-left:%dpx;color:gray" padding) ] (sprintf "⏳ %s" name)
+        Html.simpleDiv [
+            ("id", id);
+            ("data-test", name)
+            ("class", "executing");
+            ("style",sprintf "font-size:16px; padding-left:%dpx;color:gray" padding)
+        ] (sprintf "⏳ %s" name)
 
     let rec private renderBrowserTests (hasFocusedTests : bool) (tests: TestCase list) (padding: int) : Html.Node list =
         tests
@@ -148,6 +153,7 @@ module Mocha =
                 | Normal when hasFocusedTests ->
                     Html.simpleDiv [
                         ("class", "pending")
+                        ("data-test", name)
                         ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding)
                     ] (sprintf "🚧 skipping '%s' due to other focused tests" name)
                 | Normal ->
@@ -155,6 +161,7 @@ module Mocha =
                 | Pending ->
                     Html.simpleDiv [
                         ("class", "pending")
+                        ("data-test", name)
                         ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding)
                     ] (sprintf "🚧 skipping '%s' due to it being marked as pending" name)
                 | Focused ->
@@ -165,6 +172,7 @@ module Mocha =
                 | Normal when hasFocusedTests ->
                     Html.simpleDiv [
                         ("class", "pending")
+                        ("data-test", name)
                         ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding)
                     ] (sprintf "🚧 skipping '%s' due to other focused tests" name)
                 | Normal ->
@@ -172,6 +180,7 @@ module Mocha =
                 | Pending ->
                     Html.simpleDiv [
                         ("class", "pending")
+                        ("data-test", name)
                         ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding)
                     ] (sprintf "🚧 skipping '%s' due to it being marked as pending" name)
                 | Focused ->
@@ -262,4 +271,3 @@ module Mocha =
         #else
         runViaDotnet test
         #endif
-        
