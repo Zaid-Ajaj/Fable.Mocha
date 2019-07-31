@@ -1,3 +1,9 @@
+### 2.5.0
+
+* Add Femto metadata for Fable.Mocha
+* Do not re-describe synchrounous tests
+* Fix Puppeteer runner on non-windows machines
+
 ### 2.4.0
 
 * Add proper data attributes to the browser runner

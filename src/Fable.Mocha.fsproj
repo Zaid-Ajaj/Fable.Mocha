@@ -1,24 +1,29 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <Description>Fable binding for mocha, the javascript test runner</Description>
-    <PackageProjectUrl>https://github.com/Zaid-Ajaj/Fable.Mocha</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Zaid-Ajaj/Fable.Mocha</RepositoryUrl>
-    <PackageLicenseUrl>https://github.com/Zaid-Ajaj/Fable.Mocha/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageIconUrl></PackageIconUrl>
-    <PackageTags>fsharp;fable</PackageTags>
-    <Authors>Zaid Ajaj</Authors>
-    <Version>2.4.0</Version>
-    <PackageVersion>2.4.0</PackageVersion>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="Mocha.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="*.fsproj; *.fs; *.js" PackagePath="fable\" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Fable.Core" Version="3.0.0" />
-  </ItemGroup>
+    <PropertyGroup>
+        <Description>Fable binding for mocha, the javascript test runner</Description>
+        <PackageProjectUrl>https://github.com/Zaid-Ajaj/Fable.Mocha</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Zaid-Ajaj/Fable.Mocha</RepositoryUrl>
+        <PackageLicenseUrl>https://github.com/Zaid-Ajaj/Fable.Mocha/blob/master/LICENSE</PackageLicenseUrl>
+        <PackageIconUrl></PackageIconUrl>
+        <PackageTags>fsharp;fable</PackageTags>
+        <Authors>Zaid Ajaj</Authors>
+        <Version>2.5.0</Version>
+        <PackageVersion>2.5.0</PackageVersion>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+    <PropertyGroup>
+        <NpmDependencies>
+            <NpmPackage Name="mocha" Version=">= 6.2.0" DevDependency="true" />
+        </NpmDependencies>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="Mocha.fs" />
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="*.fsproj; *.fs; *.js" PackagePath="fable\" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Fable.Core" Version="3.0.0" />
+    </ItemGroup>
 </Project>

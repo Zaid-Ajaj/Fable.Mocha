@@ -227,16 +227,18 @@ module Mocha =
 
     let rec private runViaMocha (test: TestCase) =
         match test with
-            | SyncTest (msg, test, focus) -> describe msg (fun () ->
+            | SyncTest (msg, test, focus) ->
                 match focus with
                 | Normal -> it msg test
                 | Pending -> itSkip msg test
-                | Focused -> itOnly msg test)
+                | Focused -> itOnly msg test
+
             | AsyncTest (msg, test, focus) ->
                 match focus with
                 | Normal -> itAsync msg (configureAsyncTest test)
                 | Pending -> itSkipAsync msg (configureAsyncTest test)
                 | Focused -> itOnlyAsync msg (configureAsyncTest test)
+
             | TestList (name, testCases) ->
                 describe name <| fun () ->
                     testCases

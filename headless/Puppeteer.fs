@@ -15,7 +15,7 @@ let private isAbsolute path =
     && not (Path.GetPathRoot(path).Equals(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal))
 
 let runTests (path: string) : Async<int> =
-    if not (isAbsolute path)
+    if not (isAbsolute path) && Environment.OSVersion.Platform = PlatformID.Win32NT
     then
       printfn "Given path '%s' is relative. Please provide an absolute path instead" path
       async { return 1 }
