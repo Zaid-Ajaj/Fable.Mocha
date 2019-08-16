@@ -34,10 +34,10 @@ module private Env =
 [<RequireQualifiedAccess>]
 module Expect =
     let equal actual expected msg  : unit =
-        Assert.AreEqual(expected, actual, msg)
+        Assert.AreEqual(actual, expected, msg)
 
     let notEqual actual expected msg  : unit =
-        Assert.NotEqual(expected, actual, msg)
+        Assert.NotEqual(actual, expected, msg)
 
     let isTrue cond = equal cond true
     let isFalse cond = equal cond false

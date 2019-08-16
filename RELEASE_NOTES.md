@@ -1,3 +1,7 @@
+### 2.6.0
+
+* Switch actual and expected paramter placement for consistency with Expecto's API, see #7
+
 ### 2.5.0
 
 * Add Femto metadata for Fable.Mocha
