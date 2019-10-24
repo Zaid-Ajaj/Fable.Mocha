@@ -44,8 +44,10 @@ module Expect =
     let isZero number = equal 0 number
     let isEmpty (x: 'a seq) = equal true (Seq.isEmpty x)
     let pass() = equal true true
-
-
+    let isOk x message =
+        match x with
+        | Ok _ -> pass() message
+        | Error x' -> failwithf "%s. Expected Ok, was Error(%A)." message x'
 
 module private Html =
     type Node = {
