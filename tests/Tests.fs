@@ -17,6 +17,18 @@ let mochaTests =
 
         testCase "areEqual with msg" <| fun _ ->
             Expect.equal  2 2 "They are the same"
+        
+        testCase "isOk works correctly" <| fun _ ->
+            let actual = Ok true
+            Expect.isOk actual "Should be Ok"
+
+        testCase "isOk fails correctly" <| fun _ ->
+            let actual = Error "fails"
+            try
+                Expect.isOk actual "Should fail"
+                Expect.equal true false "Should not be tested"
+            with
+            | ex -> Expect.equal ex.Message "Should fail. Expected Ok, was Error(fails)." "Error messages should be the same"
 
         testCaseAsync "testCaseAsync works" <|
             async {
