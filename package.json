@@ -14,10 +14,10 @@
     "headless-tests": "webpack && dotnet run --project ./integration/integration.fsproj"
   },
   "dependencies": {
-    "fable-compiler": "^2.3.3",
+    "fable-compiler": "^2.4.7",
     "fable-compiler-js": "^1.0.2",
     "fable-loader": "^2.1.7",
-    "fable-splitter": "^2.1.6",
+    "fable-splitter": "^2.1.11",
     "webpack": "^4.32.2",
     "webpack-cli": "^3.3.2",
     "webpack-dev-server": "^3.4.1"

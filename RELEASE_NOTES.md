@@ -1,3 +1,8 @@
+### 2.7.0
+
+* Add `Expect.isOk` to match Expecto's API, thanks to @rfrerebe. See #8
+
+
 ### 2.6.0
 
 * Switch actual and expected paramter placement for consistency with Expecto's API, see #7
