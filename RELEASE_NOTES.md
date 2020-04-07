@@ -1,3 +1,8 @@
+### 2.8.0
+
+* Nicer error messages showing expected and actual values
+* Implement `testSequenced` for sequentially processed tests with Expecto compatibility.
+
 ### 2.7.0
 
 * Add `Expect.isOk` to match Expecto's API, thanks to @rfrerebe. See #8

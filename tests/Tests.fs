@@ -9,15 +9,37 @@ open Fable.Mocha
 let mochaTests =
     testList "Mocha framework tests" [
 
-        testCase "testCase works" <| fun () ->
-            Expect.equal 2 (1 + 1) "Should be equal"
+        testSequenced <| testList "Sequential" [
+            testCaseAsync "one" <| async {
+                do! Async.Sleep 1000
+            }
+
+            testCase "sync one" <| fun _ -> Expect.isTrue true ""
+
+            testCaseAsync "two" <| async {
+                do! Async.Sleep 1000
+            }
+
+            testCase "sync two" <| fun _ -> Expect.isTrue true ""
+
+            testList "Many" [
+                testCase "syncThree" <| fun _ -> Expect.isTrue true ""
+            ]
+
+            testCaseAsync "three" <| async {
+                do! Async.Sleep 1000
+            }
+        ]
+
+        testCase "testCase works with numbers" <| fun () ->
+            Expect.equal 2 (1 + 1) "Should be equal Should be equal Should be equal Should be equal Should be equal Should be equal Should be equal Should be equal"
 
         testCase "isFalse works" <| fun () ->
             Expect.isFalse (1 = 2) "Should be equal"
 
         testCase "areEqual with msg" <| fun _ ->
             Expect.equal  2 2 "They are the same"
-        
+
         testCase "isOk works correctly" <| fun _ ->
             let actual = Ok true
             Expect.isOk actual "Should be Ok"

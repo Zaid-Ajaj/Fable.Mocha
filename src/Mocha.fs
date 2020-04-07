@@ -13,6 +13,7 @@ type TestCase =
     | SyncTest of string * (unit -> unit) * FocusState
     | AsyncTest of string * (Async<unit>) * FocusState
     | TestList of string * TestCase list
+    | TestListSequential of string * TestCase list
 
 [<AutoOpen>]
 module Test =
@@ -23,18 +24,36 @@ module Test =
     let ptestCaseAsync name body = AsyncTest(name, body, Pending)
     let ftestCaseAsync name body = AsyncTest(name, body, Focused)
     let testList name tests = TestList(name, tests)
+    let testSequenced test =
+        match test with
+        | SyncTest(name, test, state) -> TestListSequential(name, [ SyncTest(name, test, state) ])
+        | AsyncTest(name, test, state) ->  TestListSequential(name, [ AsyncTest(name, test, state) ])
+        | TestList(name, tests) -> TestListSequential(name, tests)
+        | TestListSequential(name, tests) -> TestListSequential(name, tests)
 
-module private Env =
+[<RequireQualifiedAccess>]
+module Env =
     [<Emit("new Function(\"try {return this===window;}catch(e){ return false;}\")")>]
-    let internal isBrowser : unit -> bool = jsNative
+    let isBrowser : unit -> bool = jsNative
     let insideBrowser = isBrowser()
     [<Emit("typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope")>]
-    let internal insideWorker :  bool = jsNative
+    let insideWorker :  bool = jsNative
 
 [<RequireQualifiedAccess>]
 module Expect =
-    let equal actual expected msg  : unit =
-        Assert.AreEqual(actual, expected, msg)
+    let inline equal (expected: 'a) (actual: 'a)  msg  : unit =
+        if actual = expected || not (Env.isBrowser()) then
+            Assert.AreEqual(actual, expected, msg)
+        else
+            let valueType = actual.GetType()
+            let primitiveTypes = [ typeof<int>; typeof<bool>; typeof<double>; typeof<string>; typeof<decimal>; typeof<Guid> ]
+            let errorMsg =
+                if List.contains valueType primitiveTypes then
+                    sprintf "<span style='color:black'>Expected:</span> <br /><div style='margin-left:20px; color:crimson'>%s</div><br /><span style='color:black'>Actual:</span> </br ><div style='margin-left:20px;color:crimson'>%s</div><br /><span style='color:black'>Message:</span> </br ><div style='margin-left:20px; color:crimson'>%s</div>" (string expected) (string actual) msg
+                else
+                    sprintf "<span style='color:black'>Expected:</span> <br /><div style='margin-left:20px; color:crimson'>%A</div><br /><span style='color:black'>Actual:</span> </br ><div style='margin-left:20px;color:crimson'>%A</div><br /><span style='color:black'>Message:</span> </br ><div style='margin-left:20px; color:crimson'>%s</div>" expected actual msg
+
+            raise (Exception(errorMsg))
 
     let notEqual actual expected msg  : unit =
         Assert.NotEqual(actual, expected, msg)
@@ -100,6 +119,7 @@ module Mocha =
         | SyncTest(_,_,Focused) -> true
         | AsyncTest(_,_,Focused) -> true
         | TestList(_,tests) -> List.exists isFocused tests
+        | TestListSequential(_, tests) -> List.exists isFocused tests
         | _ -> false
 
     let private runSyncTestInBrowser name test padding =
@@ -112,7 +132,13 @@ module Mocha =
             ] (sprintf "✔ %s" name)
         with
         | ex ->
-            let error : Html.Node = { Tag = "pre"; Attributes = [ "style", "font-size:16px;color:red;margin:10px; padding:10px; border: 1px solid red; border-radius: 10px" ]; Content = ex.Message; Children = [] }
+            let error : Html.Node = {
+                Tag = "div";
+                Attributes = [ "style", "font-size:16px;color:red;margin:10px; padding:10px; border: 1px solid red; border-radius: 10px;" ];
+                Content = ex.Message;
+                Children = []
+            }
+
             Html.div [ ] [
                 Html.simpleDiv [
                     ("data-test", name)
@@ -135,7 +161,7 @@ module Mocha =
             | Choice2Of2 err ->
                 let div = Html.findElement id
                 Html.setInnerHtml (sprintf "✘ %s" name) div
-                let error : Html.Node = { Tag = "pre"; Attributes = [ "style", "margin:10px; padding:10px; border: 1px solid red; border-radius: 10px" ]; Content = err.Message; Children = [] }
+                let error : Html.Node = { Tag = "div"; Attributes = [ "style", "margin:10px; padding:10px; border: 1px solid red; border-radius: 10px" ]; Content = err.Message; Children = [] }
                 Html.setAttr "style" (sprintf "font-size:16px; padding-left:%dpx;color:red" padding) div
                 Html.setAttr "class" "failed" div
                 Html.appendChild div (Html.createNode error)
@@ -146,6 +172,46 @@ module Mocha =
             ("class", "executing");
             ("style",sprintf "font-size:16px; padding-left:%dpx;color:gray" padding)
         ] (sprintf "⏳ %s" name)
+
+    let private runAsyncSequentialTestInBrowser name test padding =
+        let id = Guid.NewGuid().ToString()
+        async {
+            do! Async.Sleep 1000
+            match! Async.Catch(test) with
+            | Choice1Of2 () ->
+                let div = Html.findElement id
+                Html.setInnerHtml (sprintf "✔ %s" name) div
+                Html.setAttr "class" "passed" div
+                Html.setAttr "style" (sprintf "font-size:16px; padding-left:%dpx;color:green" padding) div
+            | Choice2Of2 err ->
+                let div = Html.findElement id
+                Html.setInnerHtml (sprintf "✘ %s" name) div
+                let error : Html.Node = { Tag = "div"; Attributes = [ "style", "margin:10px; padding:10px; border: 1px solid red; border-radius: 10px" ]; Content = err.Message; Children = [] }
+                Html.setAttr "style" (sprintf "font-size:16px; padding-left:%dpx;color:red" padding) div
+                Html.setAttr "class" "failed" div
+                Html.appendChild div (Html.createNode error)
+        },
+        Html.simpleDiv [
+            ("id", id);
+            ("data-test", name)
+            ("class", "executing");
+            ("style",sprintf "font-size:16px; padding-left:%dpx;color:gray" padding)
+        ] (sprintf "⏳ %s" name)
+
+    let rec private flattenTests lastName = function
+        | SyncTest(name, test, state) ->
+            let modifiedName = if String.IsNullOrWhiteSpace lastName then name else sprintf "%s - %s" lastName name
+            [ SyncTest(modifiedName, test, state) ]
+
+        | AsyncTest(name, test, state) ->
+            let modifiedName = if String.IsNullOrWhiteSpace lastName then name else sprintf "%s - %s" lastName name
+            [ AsyncTest(modifiedName, test, state) ]
+
+        | TestList (name, tests) ->
+            [ for test in tests do yield! flattenTests name test ]
+
+        | TestListSequential (name, tests) ->
+            [ for test in tests do yield! flattenTests name test ]
 
     let rec private renderBrowserTests (hasFocusedTests : bool) (tests: TestCase list) (padding: int) : Html.Node list =
         tests
@@ -188,7 +254,7 @@ module Mocha =
                 | Focused ->
                     runAsyncTestInBrowser name test padding
             | TestList (name, testCases) ->
-                let tests = Html.div [] (renderBrowserTests hasFocusedTests testCases (padding + 20))
+                let tests = Html.div [] (renderBrowserTests hasFocusedTests testCases (padding + 10))
                 let header : Html.Node = {
                     Tag = "div";
                     Attributes = [
@@ -197,7 +263,96 @@ module Mocha =
                         ("style", sprintf "font-size:20px; padding:%dpx" padding) ];
                     Content = name;
                     Children = [ tests ] }
-                Html.div [ ("style", "margin-bottom:20px;") ] [ header ])
+                Html.div [ ] [ header ]
+
+            | TestListSequential (name, testCases) ->
+                let xs =
+                    flattenTests "" (TestListSequential ("", testCases))
+                    |> List.choose (function
+                        | SyncTest (testName, actualTest, focusedState) ->
+                            match focusedState with
+                            | Normal when hasFocusedTests ->
+                                let op = async { do! Async.Sleep 10 }
+                                let result =
+                                    op, Html.simpleDiv [
+                                        ("class", "pending")
+                                        ("data-test", name)
+                                        ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding)
+                                    ] (sprintf "🚧 skipping '%s' due to other focused tests" name)
+
+                                Some result
+
+                            | Pending ->
+                                let op = async { do! Async.Sleep 10 }
+                                let result =
+                                    op, Html.simpleDiv [
+                                        ("class", "pending")
+                                        ("data-test", name)
+                                        ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding)
+                                    ] (sprintf "🚧 skipping '%s' due to it being marked as pending" name)
+                                Some result
+                            | Focused
+                            | Normal ->
+                                let operation = async {
+                                    do! Async.Sleep 10
+                                    do actualTest()
+                                }
+
+                                Some (runAsyncSequentialTestInBrowser testName operation (padding + 10))
+
+                        | AsyncTest (testName, actualTest, focusedState) ->
+                            match focusedState with
+                            | Normal when hasFocusedTests ->
+                                let op = async { do! Async.Sleep 10 }
+                                let result =
+                                    op, Html.simpleDiv [
+                                        ("class", "pending")
+                                        ("data-test", name)
+                                        ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding)
+                                    ] (sprintf "🚧 skipping '%s' due to other focused tests" name)
+
+                                Some result
+
+                            | Pending ->
+                                let op = async { do! Async.Sleep 10 }
+                                let result =
+                                    op, Html.simpleDiv [
+                                        ("class", "pending")
+                                        ("data-test", name)
+                                        ("style",sprintf "font-size:16px; padding-left:%dpx; color:#B8860B" padding)
+                                    ] (sprintf "🚧 skipping '%s' due to it being marked as pending" name)
+                                Some result
+                            | Focused
+                            | Normal ->
+                                Some (runAsyncSequentialTestInBrowser testName actualTest (padding + 10))
+                        | _ ->
+                            None)
+
+                let nodes = List.map snd xs
+
+                let tests = Html.div [] nodes
+                let header : Html.Node = {
+                    Tag = "div";
+                    Attributes = [
+                        ("class", "module")
+                        ("data-module", name)
+                        ("style", sprintf "font-size:20px; padding:%dpx" padding) ];
+                    Content = name;
+                    Children = [ tests ] }
+
+                let asyncOps = List.map fst xs
+                async {
+                    for op in asyncOps do
+                        let! _ = op
+                        ()
+
+                    return ()
+                }
+
+                |> Async.Ignore
+                |> Async.StartImmediate
+
+                Html.div [ ] [ header ])
 
     let private configureAsyncTest test =
         (fun finished ->
@@ -220,7 +375,7 @@ module Mocha =
             Html.setInnerHtml (sprintf "⏳ %d being executed (async)" executingCount) (Html.findElement "executing-tests")
             Html.setInnerHtml (sprintf "🚧 %d pending" skippedCount) (Html.findElement "skipped-tests")
             if executingCount > 0 then
-                do! Async.Sleep 1000
+                do! Async.Sleep 50
                 do invalidateTestResults()
             else
                 return ()
@@ -242,6 +397,11 @@ module Mocha =
                 | Focused -> itOnlyAsync msg (configureAsyncTest test)
 
             | TestList (name, testCases) ->
+                describe name <| fun () ->
+                    testCases
+                    |> List.iter (runViaMocha)
+
+            | TestListSequential (name, testCases) ->
                 describe name <| fun () ->
                     testCases
                     |> List.iter (runViaMocha)

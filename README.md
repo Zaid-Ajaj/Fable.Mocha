@@ -255,3 +255,25 @@ let allTests = testList "All" [
 
 Mocha.runTests allTests
 ```
+### Sequential Tests
+To run tests in succession in the browser, you can use `testSequenced` as follows:
+```fs
+testSequenced <| testList "Sequential" [
+    testCaseAsync "one" <| async {
+        do! Async.Sleep 1000
+    }
+
+    testCase "sync one" <| fun _ -> Expect.isTrue true ""
+
+    testCaseAsync "two" <| async {
+        do! Async.Sleep 1000
+    }
+
+    testCase "sync two" <| fun _ -> Expect.isTrue true ""
+
+    testCaseAsync "three" <| async {
+        do! Async.Sleep 1000
+    }
+]
+```
+The browser runner will make sure these tests are run in succession, one after another. The mocha runner in node.js runs the tests sequentially by default.
