@@ -32,13 +32,13 @@ let mochaTests =
         ]
 
         testCase "testCase works with numbers" <| fun () ->
-            Expect.equal 2 (1 + 1) "Should be equal Should be equal Should be equal Should be equal Should be equal Should be equal Should be equal Should be equal"
+            Expect.equal (1 + 1) 2 "Should be equal Should be equal Should be equal Should be equal Should be equal Should be equal Should be equal Should be equal"
 
         testCase "isFalse works" <| fun () ->
             Expect.isFalse (1 = 2) "Should be equal"
 
         testCase "areEqual with msg" <| fun _ ->
-            Expect.equal  2 2 "They are the same"
+            Expect.equal 2 2 "They are the same"
 
         testCase "isOk works correctly" <| fun _ ->
             let actual = Ok true
@@ -57,7 +57,7 @@ let mochaTests =
                 do! Async.Sleep 3000
                 let! x = async { return 21 }
                 let answer = x * 2
-                Expect.equal 42 answer "Should be equal"
+                Expect.equal answer 42 "Should be equal"
             }
 
         ptestCase "skipping this one" <| fun _ ->
@@ -74,7 +74,7 @@ let secondModuleTests =
         testCase "module works properly" <| fun _ ->
             let answer = 31415.0
             let pi = answer / 10000.0
-            Expect.equal 3.1415 pi "Should be equal"
+            Expect.equal pi 3.1415 "Should be equal"
     ]
 
 let structuralEqualityTests =
@@ -82,12 +82,12 @@ let structuralEqualityTests =
         testCase "they are equal" <| fun _ ->
             let expected = {| one = "one"; two = 2 |}
             let actual = {| one = "one"; two = 2 |}
-            Expect.equal expected actual "Should be equal"
+            Expect.equal actual expected "Should be equal"
 
         testCase "they are not equal" <| fun _ ->
             let expected = {| one = "one"; two = 1 |}
             let actual = {| one = "one"; two = 2 |}
-            Expect.notEqual expected actual "Should be equal"
+            Expect.notEqual actual expected "Should be equal"
     ]
 
 let nestedTestCase =
