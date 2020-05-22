@@ -1,3 +1,7 @@
+### 2.9.0
+
+* Flip order of arguments when checking equality of expected vs actual value
+
 ### 2.8.0
 
 * Nicer error messages showing expected and actual values
