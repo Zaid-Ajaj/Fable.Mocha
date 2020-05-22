@@ -41,7 +41,7 @@ module Env =
 
 [<RequireQualifiedAccess>]
 module Expect =
-    let inline equal (expected: 'a) (actual: 'a)  msg  : unit =
+    let inline equal (actual: 'a) (expected: 'a) msg  : unit =
         if actual = expected || not (Env.isBrowser()) then
             Assert.AreEqual(actual, expected, msg)
         else
