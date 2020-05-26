@@ -1,3 +1,7 @@
+### 2.9.1
+
+* Relax FSharp.Core dependency to >= 4.7.0
+
 ### 2.9.0
 
 * Flip order of arguments when checking equality of expected vs actual value
