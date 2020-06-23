@@ -307,7 +307,6 @@ let executeTarget = function
     | IgnoreCase "publish-runner" ->
         Publish.pushNugetR "./headless/Fable.MochaPuppeteerRunner.fsproj"
 
-    | IgnoreCase "publish-runner"
     | _ ->
         ignore()
 

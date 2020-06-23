@@ -99,7 +99,11 @@ let runTests (path: string) : Async<int> =
         """
         let! _ = Async.AwaitTask (page.EvaluateExpressionAsync(toArrayFunction))
         let! _ = Async.AwaitTask (page.EvaluateExpressionAsync(getResultsFunctions))
-        let! _ = Async.AwaitTask (page.WaitForExpressionAsync("document.getElementsByClassName('executing').length === 0"))
+        printfn "Waiting for tests to finish executing..."
+        // disable timeout when waiting for tests
+        let waitOptions = WaitForFunctionOptions()
+        waitOptions.Timeout <- Nullable(0)
+        let! _ = Async.AwaitTask (page.WaitForExpressionAsync("document.getElementsByClassName('executing').length === 0", waitOptions))
         stopwatch.Stop()
         printfn "Finished running tests, took %d ms" stopwatch.ElapsedMilliseconds
         let passingTests = "document.getElementsByClassName('passed').length"
