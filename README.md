@@ -91,9 +91,9 @@ Add the following `pretest` and `test` npm scripts to your `package.json` file:
 ```
 Now you can simply run `npm test` in your terminal and it will run the `pretest` script to compile the test project and afterwards the `test` script to actually run the (compiled) tests using mocha.
 
-If you don't want to run browser when running tests you should be aware of [possible problems related](https://stackoverflow.com/questions/32236443/mocha-testing-failed-due-to-css-in-webpack) to compilation of css files in Mocha.
+If you don't want to run a browser when running tests you should be aware of [possible problems related](https://stackoverflow.com/questions/32236443/mocha-testing-failed-due-to-css-in-webpack) to the compilation of CSS files in Mocha.
 
-To disable compilation of css files you should run following command:
+To disable compilation of CSS files you should run the following command:
 ```bash
 npm install --save-dev ignore-styles
 ```
