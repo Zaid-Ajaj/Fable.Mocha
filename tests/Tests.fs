@@ -67,6 +67,22 @@ let mochaTests =
             async {
                 failwith "Shouldn't be running this test"
             }
+
+        testCase "stringContains works correctly" <| fun _ ->
+            let actual = Ok true
+            Expect.stringContains "Hello, World!" "World" "Should contain string"
+
+        testCase "stringContains fails correctly" <| fun _ ->
+            let actual = Error "fails"
+            try
+                Expect.stringContains "Hello, Mocha!" "World" "Should fail"
+                Expect.equal true false "Should not be tested"
+            with
+            | ex -> 
+                Expect.equal 
+                    ex.Message 
+                    "Should fail. Expected subject string 'Hello, Mocha!' to contain substring 'World'." 
+                    "Error messages should be the same"
     ]
 
 let secondModuleTests =

@@ -67,6 +67,10 @@ module Expect =
         match x with
         | Ok _ -> pass() message
         | Error x' -> failwithf "%s. Expected Ok, was Error(%A)." message x'
+    let stringContains (subject: string) (substring: string) message =
+        if not (subject.Contains(substring)) 
+        then failwithf "%s. Expected subject string '%s' to contain substring '%s'." message subject substring
+        else pass() message
 
 module private Html =
     type Node = {
