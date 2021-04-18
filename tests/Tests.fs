@@ -50,7 +50,7 @@ let mochaTests =
                 Expect.isOk actual "Should fail"
                 Expect.equal true false "Should not be tested"
             with
-            | ex -> Expect.equal ex.Message "Should fail. Expected Ok, was Error(fails)." "Error messages should be the same"
+            | ex -> Expect.stringContains ex.Message "Expected Ok" "Error messages should be the same"
 
         testCaseAsync "testCaseAsync works" <|
             async {
@@ -78,10 +78,10 @@ let mochaTests =
                 Expect.stringContains "Hello, Mocha!" "World" "Should fail"
                 Expect.equal true false "Should not be tested"
             with
-            | ex -> 
-                Expect.equal 
-                    ex.Message 
-                    "Should fail. Expected subject string 'Hello, Mocha!' to contain substring 'World'." 
+            | ex ->
+                Expect.equal
+                    ex.Message
+                    "Should fail. Expected subject string 'Hello, Mocha!' to contain substring 'World'."
                     "Error messages should be the same"
     ]
 

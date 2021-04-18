@@ -62,15 +62,16 @@ module Expect =
     let isFalse cond = equal cond false
     let isZero number = equal 0 number
     let isEmpty (x: 'a seq) = equal true (Seq.isEmpty x)
-    let pass() = equal true true
+    let pass() = equal true true "The test passed"
+    let passWithMsg (message: string) = equal true true message
     let isOk x message =
         match x with
-        | Ok _ -> pass() message
+        | Ok _ -> passWithMsg message
         | Error x' -> failwithf "%s. Expected Ok, was Error(%A)." message x'
     let stringContains (subject: string) (substring: string) message =
-        if not (subject.Contains(substring)) 
+        if not (subject.Contains(substring))
         then failwithf "%s. Expected subject string '%s' to contain substring '%s'." message subject substring
-        else pass() message
+        else passWithMsg message
 
 module private Html =
     type Node = {

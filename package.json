@@ -10,8 +10,11 @@
     "publish": "fable build.fsx --run clean build test publish",
     "publish-runner": "fable build.fsx --run publish-runner",
     "start": "webpack-dev-server",
+    "start:nagareyama": "dotnet fable watch ./tests --run webpack-dev-server --config nagareyama.config.js",
+    "build:nagareyama": "dotnet fable ./tests --run webpack --config nagareyama.config.js",
     "build-for-browser": "webpack",
-    "headless-tests": "webpack && dotnet run --project ./integration/integration.fsproj"
+    "headless-tests": "webpack && dotnet run --project ./integration/integration.fsproj",
+    "nagareyama-headless-tests": "dotnet fable ./tests --run webpack --config nagareyama.config.js && dotnet run --project ./integration/integration.fsproj"
   },
   "dependencies": {
     "fable-compiler": "^2.4.7",
@@ -23,6 +26,6 @@
     "webpack-dev-server": "^3.4.1"
   },
   "devDependencies": {
-    "mocha": "^6.2.0"
+    "mocha": "^8.3.2"
   }
 }

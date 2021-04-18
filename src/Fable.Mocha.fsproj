@@ -7,21 +7,21 @@
         <PackageIconUrl></PackageIconUrl>
         <PackageTags>fsharp;fable</PackageTags>
         <Authors>Zaid Ajaj</Authors>
-        <Version>2.9.1</Version>
-        <PackageVersion>2.9.1</PackageVersion>
+        <Version>2.10.0</Version>
+        <PackageVersion>2.10.0</PackageVersion>
         <TargetFramework>netstandard2.0</TargetFramework>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
     <PropertyGroup>
         <NpmDependencies>
-            <NpmPackage Name="mocha" Version=">= 6.2.0" DevDependency="true" />
+            <NpmPackage Name="mocha" Version="gte 8.3.2 lt 9.0.0" DevDependency="true" />
         </NpmDependencies>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="Mocha.fs" />
     </ItemGroup>
     <ItemGroup>
-        <Content Include="*.fsproj; *.fs; *.js" PackagePath="fable\" />
+        <Content Include="*.fsproj; *.fs; *.js" Exclude="**\*.fs.js" PackagePath="fable\" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Update="FSharp.Core" Version="4.7.0"/>

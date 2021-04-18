@@ -1,3 +1,7 @@
+### 2.10.0
+
+* Add Expecto.stringContains and Expecto.passWithMsg
+
 ### 2.9.1
 
 * Relax FSharp.Core dependency to >= 4.7.0

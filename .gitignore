@@ -202,3 +202,4 @@ dist/*
 
 #ionide
 .ionide/
+*.fs.js

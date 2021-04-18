@@ -28,14 +28,13 @@ let runTests (path: string) : Async<int> =
     printfn ""
     printfn "Downloading chromium browser..."
     let browserFetcher = BrowserFetcher()
-    browserFetcher.DownloadAsync(BrowserFetcher.DefaultRevision)
+    browserFetcher.DownloadAsync(BrowserFetcher.DefaultChromiumRevision)
     |> Async.AwaitTask
     |> Async.RunSynchronously
     |> ignore
+
     printfn "Chromium browser downloaded"
 
-
-    let cwd = Directory.GetCurrentDirectory()
     let rnd = Random()
     let port = rnd.Next(5000, 9000)
     printfn "Chosen random port %d for the static files server" port
@@ -64,7 +63,7 @@ let runTests (path: string) : Async<int> =
     printfn ""
 
     let launchOptions = LaunchOptions()
-    launchOptions.ExecutablePath <- browserFetcher.GetExecutablePath(BrowserFetcher.DefaultRevision)
+    launchOptions.ExecutablePath <- browserFetcher.GetExecutablePath(BrowserFetcher.DefaultChromiumRevision)
     launchOptions.Headless <- true
 
     async {
