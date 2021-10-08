@@ -120,20 +120,6 @@ let mochaTests =
                 Expect.isNotInfinity actual "Should fail"
             Expect.throws case "Should have failed"
         
-        testCase "isGreaterThan works correctly" <| fun _ ->
-            Expect.isGreaterThan 30 20 "Should be greater"
-        
-        testCase "isGreaterThanOrEquals works correctly" <| fun _ ->
-            Expect.isGreaterThanOrEqual 30 20 "Should be greater"
-            Expect.isGreaterThanOrEqual 30 30 "Should be equal"
-        
-        testCase "isLessThan works correctly" <| fun _ ->
-            Expect.isLessThan 20 30 "Should be less"
-        
-        testCase "isLessThanOrEqual works correctly" <| fun _ ->
-            Expect.isLessThanOrEqual 20 30 "Should be less"
-            Expect.isLessThanOrEqual 30 30 "Should be equal"
-        
         testCaseAsync "testCaseAsync works" <|
             async {
                 do! Async.Sleep 3000
@@ -151,11 +137,9 @@ let mochaTests =
             }
 
         testCase "stringContains works correctly" <| fun _ ->
-            let actual = Ok true
             Expect.stringContains "Hello, World!" "World" "Should contain string"
 
         testCase "stringContains fails correctly" <| fun _ ->
-            let actual = Error "fails"
             try
                 Expect.stringContains "Hello, Mocha!" "World" "Should fail"
                 Expect.equal true false "Should not be tested"
@@ -205,13 +189,14 @@ let focusedTestsCases =
             }
     ]
 
-let allTests = testList "All" [
-    mochaTests
-    secondModuleTests
-    structuralEqualityTests
-    nestedTestCase
-    // focusedTestsCases
-]
+let allTests =
+    testList "All" [
+        mochaTests
+        secondModuleTests
+        structuralEqualityTests
+        nestedTestCase
+        // focusedTestsCases
+    ]
 
 [<EntryPoint>]
 let main args =
