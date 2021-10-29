@@ -1,3 +1,7 @@
+### 2.11.0
+
+* Added more options to Expect module
+
 ### 2.10.0
 
 * Add Expecto.stringContains and Expecto.passWithMsg
