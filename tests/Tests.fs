@@ -32,7 +32,7 @@ let mochaTests =
         ]
 
         testCase "testCase works with numbers" <| fun () ->
-            Expect.equal (1 + 1) 2 "Should be equal Should be equal Should be equal Should be equal Should be equal Should be equal Should be equal Should be equal"
+            Expect.equal (1 + 1) 2 "Should be equal"
 
         testCase "isFalse works" <| fun () ->
             Expect.isFalse (1 = 2) "Should be equal"
@@ -45,13 +45,81 @@ let mochaTests =
             Expect.isOk actual "Should be Ok"
 
         testCase "isOk fails correctly" <| fun _ ->
-            let actual = Error "fails"
-            try
+            let case () =
+                let actual = Error "fails"
                 Expect.isOk actual "Should fail"
                 Expect.equal true false "Should not be tested"
-            with
-            | ex -> Expect.stringContains ex.Message "Expected Ok" "Error messages should be the same"
-
+            let catch (exn: System.Exception) =
+                Expect.equal exn.Message "Should fail. Expected Ok, was Error(\"fails\")." "Error messages should be the same"
+            Expect.throwsC case catch
+        
+        testCase "isError works correctly" <| fun _ ->
+            let actual = Error "Is Error"
+            Expect.isError actual "Should be Error"
+        
+        testCase "isError fails correctly" <| fun _ ->
+            let case () =
+                let actual = Ok true
+                Expect.isError actual "Should fail"
+                Expect.equal true false "Should not be tested"
+            let catch (exn: System.Exception) =
+                Expect.equal exn.Message "Should fail. Expected Error _, was Ok(true)." "Error messages should be the same"
+            Expect.throwsC case catch
+        
+        testCase "isSome works correctly" <| fun _ ->
+            let actual = Some true
+            Expect.isSome actual "Should be Some"
+        
+        testCase "isSome fails correctly" <| fun _ ->
+            let case () = 
+                let actual = None
+                Expect.isSome actual "Should fail"
+                Expect.equal true false "Should not be tested"
+            let catch (exn: System.Exception) =
+                Expect.equal exn.Message "Should fail. Expected Some _, was None." "Error messages should be the same"
+            Expect.throwsC case catch
+        
+        testCase "isNone works correctly" <| fun _ ->
+            let actual = None
+            Expect.isNone actual "Should be Some"
+        
+        testCase "isNone fails correctly" <| fun _ ->
+            let case () =
+                let actual = Some true
+                Expect.isNone actual "Should fail"
+                Expect.equal true false "Should not be tested"
+            let catch (exn: System.Exception) =
+                Expect.equal exn.Message "Should fail. Expected None, was Some(true)." "Error messages should be the same"
+            Expect.throwsC case catch
+        
+        testCase "isNotNull works correctly" <| fun _ ->
+            let actual = "not null"
+            Expect.isNotNull actual "Should not be null"
+        
+        testCase "isNull works correctly" <| fun _ ->
+            let actual = null
+            Expect.isNull actual "Should not be null"
+        
+        testCase "isNotNaN works correctly" <| fun _ ->
+            let actual = 20.4
+            Expect.isNotNaN actual "Should not be nan"
+        
+        testCase "isNotNaN fails correctly" <| fun _ ->
+            let case () =
+                let actual = nan
+                Expect.isNotNaN actual "Should fail"
+            Expect.throws case "Should have failed"
+        
+        testCase "isNotInfinity works correctly" <| fun _ ->
+            let actual = 20.4
+            Expect.isNotInfinity actual "Shouldn't be infinity"
+        
+        testCase "isNotInfinity fails correctly" <| fun _ ->
+            let case () =
+                let actual = infinity
+                Expect.isNotInfinity actual "Should fail"
+            Expect.throws case "Should have failed"
+        
         testCaseAsync "testCaseAsync works" <|
             async {
                 do! Async.Sleep 3000
@@ -69,11 +137,9 @@ let mochaTests =
             }
 
         testCase "stringContains works correctly" <| fun _ ->
-            let actual = Ok true
             Expect.stringContains "Hello, World!" "World" "Should contain string"
 
         testCase "stringContains fails correctly" <| fun _ ->
-            let actual = Error "fails"
             try
                 Expect.stringContains "Hello, Mocha!" "World" "Should fail"
                 Expect.equal true false "Should not be tested"
@@ -123,13 +189,14 @@ let focusedTestsCases =
             }
     ]
 
-let allTests = testList "All" [
-    mochaTests
-    secondModuleTests
-    structuralEqualityTests
-    nestedTestCase
-    // focusedTestsCases
-]
+let allTests =
+    testList "All" [
+        mochaTests
+        secondModuleTests
+        structuralEqualityTests
+        nestedTestCase
+        // focusedTestsCases
+    ]
 
 [<EntryPoint>]
 let main args =
