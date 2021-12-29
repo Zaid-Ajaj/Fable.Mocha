@@ -30,6 +30,8 @@ module Test =
         | AsyncTest(name, test, state) ->  TestListSequential(name, [ AsyncTest(name, test, state) ])
         | TestList(name, tests) -> TestListSequential(name, tests)
         | TestListSequential(name, tests) -> TestListSequential(name, tests)
+    let failtest msg = failwith msg
+    let failtestf fmt msg = failwithf fmt msg
 
 [<RequireQualifiedAccess>]
 module Env =
