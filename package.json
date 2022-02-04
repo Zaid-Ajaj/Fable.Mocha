@@ -5,7 +5,7 @@
     "pretest": "fable-splitter tests -o dist/tests --commonjs",
     "test": "mocha dist/tests --timeout 5000",
     "dotnet-clean": "dotnet clean ./tests/Tests.fsproj",
-    "dotnet-test": "dotnet run -p ./tests/Tests.fsproj",
+    "dotnet-test": "dotnet run --project ./tests/Tests.fsproj -c EXPECTO",
     "dotnet-expecto": "dotnet run -p ./tests/Tests.fsproj -c EXPECTO -- --summary",
     "publish": "fable build.fsx --run clean build test publish",
     "publish-runner": "fable build.fsx --run publish-runner",
@@ -17,15 +17,15 @@
     "nagareyama-headless-tests": "dotnet fable ./tests --run webpack --config nagareyama.config.js && dotnet run --project ./integration/integration.fsproj"
   },
   "dependencies": {
-    "fable-compiler": "^2.4.7",
     "fable-compiler-js": "^1.0.2",
     "fable-loader": "^2.1.7",
-    "fable-splitter": "^2.1.11",
+    "fable-splitter": "^0.1.2",
     "webpack": "^4.32.2",
     "webpack-cli": "^3.3.2",
-    "webpack-dev-server": "^3.4.1"
+    "webpack-dev-server": "^4.7.4"
   },
   "devDependencies": {
-    "mocha": "^8.3.2"
+    "fable-compiler": "^2.13.0",
+    "mocha": "^9.2.0"
   }
 }
