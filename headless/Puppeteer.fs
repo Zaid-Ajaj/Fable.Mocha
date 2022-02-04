@@ -14,27 +14,18 @@ let private isAbsolute path =
     Path.IsPathRooted(path)
     && not (Path.GetPathRoot(path).Equals(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal))
 
-let runTests (path: string) : Async<int> =
+let private validatePath path =
     if not (isAbsolute path) && Environment.OSVersion.Platform = PlatformID.Win32NT
     then
       printfn "Given path '%s' is relative. Please provide an absolute path instead" path
-      async { return 1 }
+      Error <| async { return 1 }
     elif not (Directory.Exists path) then
       printfn "Given path '%s' does not exist" path
-      async { return 1 }
+      Error <| async { return 1 }
     else
-    printfn ""
-    printfn "========== SETUP =========="
-    printfn ""
-    printfn "Downloading chromium browser..."
-    let browserFetcher = BrowserFetcher()
-    browserFetcher.DownloadAsync(BrowserFetcher.DefaultChromiumRevision)
-    |> Async.AwaitTask
-    |> Async.RunSynchronously
-    |> ignore
+      Ok ()
 
-    printfn "Chromium browser downloaded"
-
+let private run (launchOptions: LaunchOptions) (path: string) =
     let rnd = Random()
     let port = rnd.Next(5000, 9000)
     printfn "Chosen random port %d for the static files server" port
@@ -61,10 +52,6 @@ let runTests (path: string) : Async<int> =
 
     printfn "Server started"
     printfn ""
-
-    let launchOptions = LaunchOptions()
-    launchOptions.ExecutablePath <- browserFetcher.GetExecutablePath(BrowserFetcher.DefaultChromiumRevision)
-    launchOptions.Headless <- true
 
     async {
         use! browser = Async.AwaitTask(Puppeteer.LaunchAsync(launchOptions))
@@ -150,3 +137,29 @@ let runTests (path: string) : Async<int> =
         printfn "Exit code: %d" failedTestsCount
         return failedTestsCount
     }
+
+let runTests (path: string) : Async<int> =
+    match validatePath path with
+    | Error result -> result
+    | Ok () ->
+        printfn ""
+        printfn "========== SETUP =========="
+        printfn ""
+        printfn "Downloading chromium browser..."
+        let browserFetcher = BrowserFetcher()
+        browserFetcher.DownloadAsync(BrowserFetcher.DefaultChromiumRevision)
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+        |> ignore
+
+        printfn "Chromium browser downloaded"
+        let launchOptions = LaunchOptions(Headless = true, ExecutablePath = browserFetcher.GetExecutablePath(BrowserFetcher.DefaultChromiumRevision))
+        run launchOptions path
+
+let runTestsWithConfig (config: {| ExecutablePath: string; Arguments: string[] |}) (path: string) : Async<int> =
+    match validatePath path with
+    | Error result -> result
+    | Ok () ->
+        printfn "Using browser located at: %s with additional arguments: %A" config.ExecutablePath config.Arguments
+        let launchOptions = LaunchOptions(Headless = true, ExecutablePath = config.ExecutablePath, Args = config.Arguments)
+        run launchOptions path
