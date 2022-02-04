@@ -110,6 +110,20 @@ let mochaTests =
                 Expect.isNotNaN actual "Should fail"
             Expect.throws case "Should have failed"
         
+        testCase "failwith fails correctly" <| fun _ ->
+            let case () =
+                failwith "Should fail"
+            let catch (exn: System.Exception) =
+                Expect.equal exn.Message "Should fail" "Error messages should be the same"
+            Expect.throwsC case catch
+        
+        testCase "failwithf fails correctly" <| fun _ ->
+            let case () =
+                failwithf "%s%s" "Should fail" "!"
+            let catch (exn: System.Exception) =
+                Expect.equal exn.Message "Should fail!" "Error messages should be the same"
+            Expect.throwsC case catch
+        
         testCase "isNotInfinity works correctly" <| fun _ ->
             let actual = 20.4
             Expect.isNotInfinity actual "Shouldn't be infinity"
