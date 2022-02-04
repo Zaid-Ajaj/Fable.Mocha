@@ -87,12 +87,11 @@ let runTests (path: string) : Async<int> =
             return domArr(tests).map(function(test) {
                 var name = test.getAttribute('data-test')
                 var type = test.classList[0]
-                var module =
+                var [module, message] =
                     type === 'failed'
-                    ? test.parentNode.parentNode.parentNode.getAttribute('data-module')
-                    : test.parentNode.parentNode.getAttribute('data-module')
-
-                return [name, type, module];
+                    ? [test.parentNode.parentNode.parentNode.getAttribute('data-module'), test.nextElementSibling.innerText.replaceAll("\n\n", "\n")]
+                    : [test.parentNode.parentNode.getAttribute('data-module'), null]
+                return [name, type, module, message];
             });
         }
         """
@@ -136,6 +135,8 @@ let runTests (path: string) : Async<int> =
                 | "failed" ->
                     Console.ForegroundColor <- ConsoleColor.Red
                     printfn "X %s / %s" moduleName name
+                    for line in test.[3].Split('\n') do 
+                        printfn "  %s" line
                 | "pending" ->
                     Console.ForegroundColor <- ConsoleColor.Blue
                     printfn "~ %s / %s" moduleName name
