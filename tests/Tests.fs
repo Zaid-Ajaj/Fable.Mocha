@@ -52,6 +52,32 @@ let mochaTests =
             let catch (exn: System.Exception) =
                 Expect.equal exn.Message "Should fail. Expected Ok, was Error(\"fails\")." "Error messages should be the same"
             Expect.throwsC case catch
+
+        testCase "isEmpty works correctly" <| fun _ ->
+            let actual = []
+            Expect.isEmpty actual "Should be empty"
+
+        testCase "isEmpty fails correctly" <| fun _ ->
+            let case () =
+                let actual = [1]
+                Expect.isEmpty actual "Should fail"
+                Expect.equal true false "Should not be tested"
+            let catch (exn: System.Exception) =
+                Expect.equal exn.Message "Should fail. Should be empty." "Error messages should be the same"
+            Expect.throwsC case catch
+
+        testCase "isNonEmpty works correctly" <| fun _ ->
+            let actual = [1]
+            Expect.isNonEmpty actual "Should not be empty"
+
+        testCase "isNonEmpty fails correctly" <| fun _ ->
+            let case () =
+                let actual = []
+                Expect.isNonEmpty actual "Should fail"
+                Expect.equal true false "Should not be tested"
+            let catch (exn: System.Exception) =
+                Expect.equal exn.Message "Should fail. Should not be empty." "Error messages should be the same"
+            Expect.throwsC case catch
         
         testCase "isError works correctly" <| fun _ ->
             let actual = Error "Is Error"
