@@ -69,12 +69,13 @@ module Expect =
     let isTrue cond = equal cond true
     let isFalse cond = equal cond false
     let isZero cond = equal cond 0
-    let isEmpty (x: 'a seq) msg = if not (Seq.isEmpty x) then failwith msg
+    let isEmpty (x: 'a seq) msg = if not (Seq.isEmpty x) then failwithf "%s. Should be empty." msg
     let pass() = equal true true "The test passed"
     let passWithMsg (message: string) = equal true true message
     let exists (x: 'a seq) (a: 'a -> bool) msg = if not (Seq.exists a x) then failwith msg
     let all (x: 'a seq) (a: 'a -> bool) msg = if not (Seq.forall a x) then failwith msg
-    let isNonEmpty (x: 'a seq) msg = if not (Seq.isEmpty x) then failwithf "%s. Expected seq to be empty" msg
+    /// Expect the passed sequence not to be empty.
+    let isNonEmpty (x: 'a seq) msg = if Seq.isEmpty x then failwithf "%s. Should not be empty." msg
     /// Expects x to be not null nor empty
     let isNotEmpty (x: 'a seq) msg =
         isNotNull x msg
