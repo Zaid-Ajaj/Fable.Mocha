@@ -29,7 +29,10 @@ let publish projectDir =
         let nugetKey =
             match Environment.environVarOrNone "NUGET_KEY" with
             | Some nugetKey -> nugetKey
-            | None -> failwith "The Nuget API key must be set in a NUGET_KEY environmental variable"
+            | None -> 
+                printfn "The Nuget API key must be set in a NUGET_KEY environmental variable"
+                System.Console.Write "Enter your NUGET_KEY here: "
+                System.Console.ReadLine()
 
         let nugetPath =
             Directory.GetFiles(path [ projectDir; "bin"; "Release" ])
@@ -47,6 +50,15 @@ let headlessTests() =
     if Shell.Exec(Tools.npm, "run nagareyama-headless-tests", solutionRoot) <> 0
     then failwith "Headless tests failed :/"
 
+let npmInstall() = 
+    if Shell.Exec(Tools.npm, "install", solutionRoot) <> 0
+    then failwith "Npm install failed"
+
+let dotnetToolRestore() = 
+    if Shell.Exec(Tools.dotnet, "tool restore", solutionRoot) <> 0
+    then failwith "dotnet tool restore failed"
+
+
 [<EntryPoint>]
 let main (args: string[]) = 
     Console.OutputEncoding <- System.Text.Encoding.UTF8
@@ -56,8 +68,12 @@ let main (args: string[]) =
         | [| "publish-mocha" |] -> publish mocha
         | [| "publish-headless-runner" |] -> publish headlessRunner
         | [| "dotnet-test" |] -> dotnetExpectoTest()
-        | [| "headless-tests" |] -> headlessTests()
-        | _ -> printfn "Unknown args: %A" args
+        | [| "headless-tests" |] -> 
+            dotnetToolRestore()
+            npmInstall()
+            headlessTests()
+        | _ -> 
+            printfn "Unknown args: %A" args
         
         // exit succesfully
         0
