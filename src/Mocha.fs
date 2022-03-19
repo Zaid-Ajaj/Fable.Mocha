@@ -86,7 +86,14 @@ module Expect =
     let isOk x message =
         match x with
         | Ok _ -> passWithMsg message
-        | Error x' -> failwithf "%s. Expected Ok, was Error(\"%s\")." message x'
+        | Error x' -> failwithf "%s. Expected Ok, was Error(\"%A\")." message x'
+    /// Expects the value to be a Result.Ok value and returns it or fails the test
+    let wantOk x message =
+        match x with
+        | Ok x' ->
+            passWithMsg message
+            x'
+        | Error x' -> failwithf "%s. Expected Ok, was Error(\"%A\")." message x'
     let stringContains (subject: string) (substring: string) message =
         if not (subject.Contains(substring))
         then failwithf "%s. Expected subject string '%s' to contain substring '%s'." message subject substring
@@ -97,9 +104,23 @@ module Expect =
         match x with
         | Error _ -> passWithMsg message
         | Ok x' -> failwithf "%s. Expected Error _, was Ok(%A)." message x'
+    /// Expects the value to be a Result.Error value and returns it or fails the test
+    let wantError x message =
+        match x with
+        | Error x' ->
+            passWithMsg message
+            x'
+        | Ok x' -> failwithf "%s. Expected Error _, was Ok(%A)." message x'
     let isSome x message =
         match x with
         | Some _ -> passWithMsg message
+        | None -> failwithf "%s. Expected Some _, was None." message
+    /// Expects the value to be a Some x value and returns x or fails the test
+    let wantSome x message =
+        match x with
+        | Some x' ->
+            passWithMsg message
+            x'
         | None -> failwithf "%s. Expected Some _, was None." message
     let isNone x message =
         match x with
