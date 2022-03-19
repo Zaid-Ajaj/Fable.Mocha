@@ -60,19 +60,19 @@ open Fable.Mocha
 
 let arithmeticTests =
     testList "Arithmetic tests" [
-
-        testCase "plus works" <| fun () ->
+        test "plus works" {
             Expect.equal (1 + 1) 2 "plus"
+        }
 
-        testCase "Test for falsehood" <| fun () ->
+        test "Test for falsehood" {
             Expect.isFalse (1 = 2) "false"
+        }
 
-        testCaseAsync "Test async code" <|
-            async {
-                let! x = async { return 21 }
-                let answer = x * 2
-                Expect.equal 42 answer "async"
-            }
+        testAsync "Test async code" {
+            let! x = async { return 21 }
+            let answer = x * 2
+            Expect.equal 42 answer "async"
+        }
     ]
 
 Mocha.runTests arithmeticTests
@@ -189,7 +189,7 @@ Also you need to add the `RunWorkingDirectory` property to `HeadlessTests.fsproj
 ```xml
 <PropertyGroup>
   <OutputType>Exe</OutputType>
-  <TargetFramework>netcoreapp3.0</TargetFramework>
+  <TargetFramework>net6</TargetFramework>
   <RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
 </PropertyGroup>
 ```
@@ -239,17 +239,19 @@ open Fable.Mocha
 
 let firstModuleTests =
     testList "firstModule" [
-        testCase "module works properly" <| fun _ ->
+        test "module works properly" {
             let answer = 21
             Expect.areEqual 42 (answer * 2)
+        }
     ]
 
 let secondModuleTests =
     testList "secondModuleModule" [
-        testCase "module works properly" <| fun _ ->
+        test "module works properly" {
             let answer = 31415.0
             let pi = answer / 10000.0
             Expect.areEqual 3.1415 pi
+        }
     ]
 
 // Tests can be nested too!
@@ -272,19 +274,23 @@ Mocha.runTests allTests
 To run tests in succession in the browser, you can use `testSequenced` as follows:
 ```fs
 testSequenced <| testList "Sequential" [
-    testCaseAsync "one" <| async {
+    testAsync "one" {
         do! Async.Sleep 1000
     }
 
-    testCase "sync one" <| fun _ -> Expect.isTrue true ""
+    test "sync one" {
+        Expect.isTrue true ""
+    }
 
-    testCaseAsync "two" <| async {
+    testAsync "two" {
         do! Async.Sleep 1000
     }
 
-    testCase "sync two" <| fun _ -> Expect.isTrue true ""
+    test "sync two" {
+        Expect.isTrue true ""
+    }
 
-    testCaseAsync "three" <| async {
+    testAsync "three" {
         do! Async.Sleep 1000
     }
 ]

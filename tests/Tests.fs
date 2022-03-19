@@ -8,6 +8,16 @@ open Fable.Mocha
 
 let mochaTests =
     testList "Mocha framework tests" [
+        testList "Computation expressions" [            
+            test "normal test" {
+                Expect.isTrue true ""
+            }
+
+            testAsync "async test" {
+                do! Async.Sleep 300
+                Expect.isTrue true ""
+            }
+        ]
 
         testSequenced <| testList "Sequential" [
             testCaseAsync "one" <| async {
