@@ -241,6 +241,16 @@ let mochaTests =
                     ex.Message
                     "Should fail. Expected subject string 'Hello, Mocha!' to contain substring 'World'."
                     "Error messages should be the same"
+
+        testList "containsAll" [
+            test "identical sequence" {
+                Expect.containsAll [|21;37|] [|21;37|] "Identical sequences"
+            }
+
+            test "sequence contains all in different order" {
+                Expect.containsAll [|21;37|] [|37;21|] "Same elements in different order"
+            }
+        ]
     ]
 
 let secondModuleTests =
