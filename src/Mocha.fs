@@ -236,9 +236,9 @@ module Mocha =
     let [<Global>] private it (msg: string) (f: unit->unit) = jsNative
     let [<Emit("it.skip($0, $1)")>] private itSkip (msg: string) (f: unit->unit) = jsNative
     let [<Emit("it.only($0, $1)")>] private itOnly (msg: string) (f: unit->unit) = jsNative
-    let [<Emit("it($0, $1)")>] private itAsync msg (f: (unit -> unit) -> unit) = jsNative
-    let [<Emit("it.skip($0, $1)")>] private itSkipAsync msg (f: (unit -> unit) -> unit) = jsNative
-    let [<Emit("it.only($0, $1)")>] private itOnlyAsync msg (f: (unit -> unit) -> unit) = jsNative
+    let [<Emit("it($0, $1)")>] private itAsync msg (f: unit -> JS.Promise<unit>) = jsNative
+    let [<Emit("it.skip($0, $1)")>] private itSkipAsync msg (f: unit -> JS.Promise<unit>) = jsNative
+    let [<Emit("it.only($0, $1)")>] private itOnlyAsync msg (f: unit -> JS.Promise<unit>) = jsNative
 
     let rec isFocused (test: TestCase ) =
         match test with
@@ -480,13 +480,8 @@ module Mocha =
 
                 Html.div [ ] [ header ])
 
-    let private configureAsyncTest test =
-        (fun finished ->
-            async {
-                match! Async.Catch(test) with
-                | Choice1Of2 () -> do finished()
-                | Choice2Of2 err -> do finished(unbox err)
-            } |> Async.StartImmediate )
+    let private configureAsyncTest (test: Async<unit>) =
+        fun () -> test |> Async.StartAsPromise
 
     let rec invalidateTestResults() =
         async {
