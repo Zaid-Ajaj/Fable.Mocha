@@ -194,6 +194,32 @@ module Expect =
         | None -> failwithf "Expected f to throw."
         | Some exn -> cont exn
 
+    /// Expects the `actual` sequence to contain all elements from `expected`
+    /// It doesn't take into account the number of occurrences and the order of elements.
+    /// Calling this function will enumerate both sequences; they have to be finite.
+    let containsAll (actual : _ seq) (expected : _ seq) message =
+        let actualEls, expectedEls = List.ofSeq actual, List.ofSeq expected
+        let matchingEls =
+            actualEls
+            |> List.filter (fun a -> expectedEls |> List.contains a)
+        
+        let extraEls =
+            actualEls
+            |> List.filter (fun a -> not (matchingEls |> List.contains a))
+        let missingEls =
+            expectedEls
+            |> List.filter (fun e -> not (matchingEls |> List.contains e))
+
+        if List.isEmpty missingEls then
+            ()
+        else
+            sprintf
+                "%s. Sequence `actual` does not contain all `expected` elements. Missing elements from `actual`: %A. Extra elements in `actual`: %A"
+                message
+                missingEls
+                extraEls
+            |> failtest
+
 module private Html =
     type Node = {
         Tag: string;
