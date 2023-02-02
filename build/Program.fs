@@ -49,7 +49,7 @@ let dotnetExpectoTest() =
     then failwith "Failed running tests using dotnet and Expecto"
 
 let headlessTests() = 
-    if Shell.Exec(Tools.npm, "run nagareyama-headless-tests", solutionRoot) <> 0
+    if Shell.Exec(Tools.npm, "run headless-tests", solutionRoot) <> 0
     then failwith "Headless tests failed :/"
 
 let npmInstall() = 
