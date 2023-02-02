@@ -4,9 +4,6 @@ init:
 build:
   verbosity: detailed
 
-environment:
-  nodejs_version: "18.11.0"
-
 cache:
  - "%LOCALAPPDATA%\\Yarn"
 
@@ -15,8 +12,7 @@ install:
   # install latest dotnet sdk
   - cmd: choco install dotnet-6.0-sdk
   # Get the latest configured version of Node.js
-  - ps: Install-Product node $env:nodejs_version
-  - cmd: npm install
+  - cmd: choco install nodejs-lts
 
 os: Visual Studio 2022
 
