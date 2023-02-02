@@ -8,6 +8,8 @@ open System.Xml
 open System.Xml.Linq
 open Fake.IO
 open Fake.Core
+open Newtonsoft.Json
+open Newtonsoft.Json.Linq
 
 let path xs = Path.Combine(Array.ofList xs)
 
@@ -58,17 +60,44 @@ let dotnetToolRestore() =
     if Shell.Exec(Tools.dotnet, "tool restore", solutionRoot) <> 0
     then failwith "dotnet tool restore failed"
 
+let nodejsTest() = 
+    if Shell.Exec(Tools.npm, "test", solutionRoot) <> 0
+    then failwith "Nodejs tests failed"
+
+let addTypeModuleToPackageJson() = 
+    let packageJsonPath = Path.Combine(solutionRoot, "package.json")
+    let packageJson = JObject.Parse(File.ReadAllText(packageJsonPath))
+    if packageJson.["type"] = null then
+        packageJson.Add("type", "module")
+        File.WriteAllText(packageJsonPath, packageJson.ToString())
+    else
+        printfn "package.json already has type module"
+
+let removeTypeModuleFromPackageJson() = 
+    let packageJsonPath = Path.Combine(solutionRoot, "package.json")
+    let packageJson = JObject.Parse(File.ReadAllText(packageJsonPath))
+    if packageJson.["type"] <> null then
+        packageJson.Remove("type") |> ignore
+        File.WriteAllText(packageJsonPath, packageJson.ToString())
+    else
+        printfn "package.json does not have type: module"
 
 [<EntryPoint>]
 let main (args: string[]) = 
-    Console.OutputEncoding <- System.Text.Encoding.UTF8
+    Console.OutputEncoding <- Encoding.UTF8
     try
         // run tasks
         match args with 
         | [| "publish-mocha" |] -> publish mocha
         | [| "publish-headless-runner" |] -> publish headlessRunner
         | [| "dotnet-test" |] -> dotnetExpectoTest()
-        | [| "headless-tests" |] -> 
+        | [| "nodejs-test" |] -> 
+            addTypeModuleToPackageJson()
+            dotnetToolRestore()
+            npmInstall()
+            nodejsTest()
+        | [| "headless-test" |] -> 
+            removeTypeModuleFromPackageJson()
             dotnetToolRestore()
             npmInstall()
             headlessTests()

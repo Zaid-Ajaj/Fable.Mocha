@@ -156,13 +156,6 @@ module Expect =
         match x with
         | Error _ -> passWithMsg message
         | Ok x' -> failwithf "%s. Expected Error _, was Ok(%A)." message x'
-    /// Expects the value to be a Result.Error value and returns it or fails the test
-    let wantError x message =
-        match x with
-        | Error x' ->
-            passWithMsg message
-            x'
-        | Ok x' -> failwithf "%s. Expected Error _, was Ok(%A)." message x'
     let isSome x message =
         match x with
         | Some _ -> passWithMsg message
@@ -174,6 +167,13 @@ module Expect =
             passWithMsg message
             x'
         | None -> failwithf "%s. Expected Some _, was None." message
+    /// Expects the value to be a Result.Error value and returns it or fails the test
+    let wantError (x: Result<'a, 'b>) (message: string) =
+        match x with
+        | Error value ->
+            passWithMsg message
+            value
+        | Ok value -> failwithf "%s. Expected Error _, was Ok(%A)." message value
     let isNone x message =
         match x with
         | None -> passWithMsg message

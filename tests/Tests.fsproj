@@ -13,7 +13,7 @@
     <ProjectReference Include="..\src\Fable.Mocha.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="expecto" Version="8.10.1" />
+    <PackageReference Include="expecto" Version="9.0.4" />
     <PackageReference Include="Fable.Core" Version="3.0.0" />
     <PackageReference Include="Fable.SimpleJson" Version="3.0.0" />
   </ItemGroup>

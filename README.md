@@ -17,9 +17,6 @@ Install the Fable binding from Nuget
 ```bash
 # using nuget
 dotnet add package Fable.Mocha
-
-# or with paket
-paket add Fable.Mocha --project /path/to/project.fsproj
 ```
 
 ## Writing Tests
@@ -80,14 +77,22 @@ Mocha.runTests arithmeticTests
 
 ## Running the tests on node.js with Mocha
 
-Install the actual `mocha` test runner from Npm along side `fable-splitter` that will compile your test project into a node.js application
+Install the actual `mocha` test runner as a dev dependency:
 ```bash
-npm install --save-dev mocha fable-splitter
+npm install --save-dev mocha
 ```
-Add the following `pretest` and `test` npm scripts to your `package.json` file:
+then add the following `pretest` and `test` npm scripts to your `package.json` file:
 ```json
-"pretest": "fable-splitter tests -o dist/tests --commonjs",
-"test": "mocha dist/tests"
+{
+    "type": "module",
+    "scripts": {
+        "pretest": "dotnet fable tests -o dist/tests",
+        "test": "mocha dist/tests"
+    },
+    "devDependencies": {
+        "mocha": "^9.2.0"
+    }
+}
 ```
 Now you can simply run `npm test` in your terminal and it will run the `pretest` script to compile the test project and afterwards the `test` script to actually run the (compiled) tests using mocha.
 
@@ -107,13 +112,9 @@ and update `test` npm script in `package.json` file to the following:
 ## Running the tests using the browser
 Trying to use mocha to run tests in the browser will give you headaches as you have to include the compiled individual test files by yourself along with mocha specific dependencies. That's why Fable.Mocha includes a *built-in* test runner for the browser. You don't need to change anything in the existing code, it just works!
 
-Compile your test project using default fable/webpack as follows.
+Compile your test project using default `dotnet fable` then bundle the result into a `bundle.js` file.
 
-First, install `fable-loader` along with with `webpack` if you haven't already:
-```
-npm install fable-loader webpack webpack-cli webpack-dev-server
-```
-Add an `index.html` page inside directory called `public` that contains:
+Then add an `index.html` page inside directory called `public` that contains:
 ```html
 <!DOCTYPE html>
 <html>
@@ -130,28 +131,26 @@ Create a webpack config file that compiles your `Tests.fsproj`
 var path = require("path");
 
 module.exports = {
-    entry: "./tests/Tests.fsproj",
+    entry: {
+        // the compiled tests file as an entry point
+        app: "./tests/Tests.fs.js",
+    },
+
     output: {
         path: path.join(__dirname, "./public"),
         filename: "bundle.js",
     },
+
     devServer: {
         contentBase: "./public",
         port: 8080,
-    },
-    module: {
-        rules: [{
-            test: /\.fs(x|proj)?$/,
-            use: "fable-loader"
-        }]
     }
 }
 ```
 
 Now you can run your tests live using webpack-dev-server or compile the tests and run them by yourself. Add these scripts to your `package.json`
 ```
-"start": "webpack-dev-server",
-"build-for-browser": "webpack"
+"start": "dotnet fable tests --runFast webpack-dev-server",
 ```
 Now if you run `npm start` you can navigate to `http://localhost:8080` to see the results of your tests.
 

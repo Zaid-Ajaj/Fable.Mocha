@@ -5,7 +5,7 @@ build:
   verbosity: detailed
 
 environment:
-  nodejs_version: "10.10.0"
+  nodejs_version: "18.11.0"
 
 cache:
  - "%LOCALAPPDATA%\\Yarn"
@@ -13,7 +13,7 @@ cache:
 # Install scripts. (runs after repo cloning)
 install:
   # install latest dotnet sdk
-  - cmd: choco install dotnet-sdk
+  - cmd: choco install dotnet-6.0-sdk
   # Get the latest configured version of Node.js
   - ps: Install-Product node $env:nodejs_version
   - cmd: npm install
@@ -21,6 +21,8 @@ install:
 os: Visual Studio 2022
 
 build_script:
-  - cmd: appveyor.cmd
+  - cmd: dotnet run --project ./build/Build.fsproj -- nodejs-test
+  - cmd: dotnet run --project ./build/Build.fsproj -- dotnet-test
+  - cmd: dotnet run --project ./build/Build.fsproj -- headless-test
 
 test: off

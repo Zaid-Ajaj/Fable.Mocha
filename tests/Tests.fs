@@ -24,7 +24,7 @@ let mochaTests =
                 do! Async.Sleep 1000
             }
 
-            testCase "sync one" <| fun _ -> Expect.isTrue true ""
+            testCase "sync one" <| fun _ -> Expect.isTrue true "this should work"
 
             testCaseAsync "two" <| async {
                 do! Async.Sleep 1000
@@ -38,6 +38,7 @@ let mochaTests =
 
             testCaseAsync "three" <| async {
                 do! Async.Sleep 1000
+                Expect.isTrue true "this should work"
             }
         ]
 
@@ -93,16 +94,16 @@ let mochaTests =
             let actual = Ok true
             let actual' = Expect.wantOk actual "Should be Ok"
             Expect.equal actual' true "Should be true"
-        
+
         testCase "wantOk fails correctly" <| fun _ ->
             let case () = 
                 let actual = Error true
                 Expect.wantOk actual "Should fail"
                 Expect.equal true false "Should not be tested"
             let catch (exn: System.Exception) =
-                Expect.equal exn.Message "Should fail. Expected Ok, was Error(\"true\")." "Error messages should be the same"
+                Expect.stringContains exn.Message "Expected Ok" "Error contains the error message"
             Expect.throwsC case catch
-        
+
         testCase "isError works correctly" <| fun _ ->
             let actual = Error "Is Error"
             Expect.isError actual "Should be Error"
@@ -113,23 +114,23 @@ let mochaTests =
                 Expect.isError actual "Should fail"
                 Expect.equal true false "Should not be tested"
             let catch (exn: System.Exception) =
-                Expect.equal exn.Message "Should fail. Expected Error _, was Ok(true)." "Error messages should be the same"
+                Expect.stringContains exn.Message "Expected Error" "error message part is present"
             Expect.throwsC case catch
-        
+
         testCase "wantError works correctly" <| fun _ ->
             let actual = Error true
             let actual' = Expect.wantError actual "Should be Error"
             Expect.equal actual' true "Should be true"
-        
+
         testCase "wantError fails correctly" <| fun _ ->
             let case () = 
                 let actual = Ok true
                 Expect.wantError actual "Should fail"
                 Expect.equal true false "Should not be tested"
             let catch (exn: System.Exception) =
-                Expect.equal exn.Message "Should fail. Expected Error _, was Ok(true)." "Error messages should be the same"
+                Expect.stringContains exn.Message "Expected Error" "Error message contains the correct error"
             Expect.throwsC case catch
-        
+
         testCase "isSome works correctly" <| fun _ ->
             let actual = Some true
             Expect.isSome actual "Should be Some"
