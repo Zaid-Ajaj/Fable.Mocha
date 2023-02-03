@@ -295,3 +295,16 @@ testSequenced <| testList "Sequential" [
 ]
 ```
 The browser runner will make sure these tests are run in succession, one after another. The mocha runner in node.js runs the tests sequentially by default.
+
+### Running tests
+
+The build project inside `./build` has multiple build tasks, most important of these:
+```bash
+cd ./build
+# run tests on node.js with mocha as test runner
+dotnet run nodejs-test 
+# run tests on dotnet with expecto as test runner
+dotnet run dotnet-test
+# run tests inside a headless browser
+dotnet run headless-test
+```
