@@ -45,7 +45,7 @@ Where `tests` contains the test project, you will install `Fable.Mocha` into the
     <ProjectReference Include="..\src\YourLibrary.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Fable.Mocha" Version="1.0.0" />
+    <PackageReference Include="Fable.Mocha" Version="2.16.0" />
   </ItemGroup>
 </Project>
 ```
@@ -72,7 +72,7 @@ let arithmeticTests =
         }
     ]
 
-Mocha.runTests arithmeticTests
+Mocha.runTests arithmeticTests |> ignore
 ```
 
 ## Running the tests on node.js with Mocha
@@ -81,7 +81,7 @@ Install the actual `mocha` test runner as a dev dependency:
 ```bash
 npm install --save-dev mocha
 ```
-then add the following `pretest` and `test` npm scripts to your `package.json` file:
+then set the package type to `module` (otherwise, Mocha won't run), and add the following `pretest` and `test` npm scripts to your `package.json` file:
 ```json
 {
     "type": "module",
