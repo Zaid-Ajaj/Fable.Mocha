@@ -8,7 +8,7 @@ open Fable.Mocha
 
 let mochaTests =
     testList "Mocha framework tests" [
-        testList "Computation expressions" [            
+        testList "Computation expressions" [
             test "normal test" {
                 Expect.isTrue true ""
             }
@@ -89,14 +89,14 @@ let mochaTests =
             let catch (exn: System.Exception) =
                 Expect.equal exn.Message "Should fail. Should not be empty." "Error messages should be the same"
             Expect.throwsC case catch
-        
+
         testCase "wantOk works correctly" <| fun _ ->
             let actual = Ok true
             let actual' = Expect.wantOk actual "Should be Ok"
             Expect.equal actual' true "Should be true"
 
         testCase "wantOk fails correctly" <| fun _ ->
-            let case () = 
+            let case () =
                 let actual = Error true
                 Expect.wantOk actual "Should fail"
                 Expect.equal true false "Should not be tested"
@@ -107,7 +107,7 @@ let mochaTests =
         testCase "isError works correctly" <| fun _ ->
             let actual = Error "Is Error"
             Expect.isError actual "Should be Error"
-        
+
         testCase "isError fails correctly" <| fun _ ->
             let case () =
                 let actual = Ok true
@@ -123,7 +123,7 @@ let mochaTests =
             Expect.equal actual' true "Should be true"
 
         testCase "wantError fails correctly" <| fun _ ->
-            let case () = 
+            let case () =
                 let actual = Ok true
                 Expect.wantError actual "Should fail"
                 Expect.equal true false "Should not be tested"
@@ -134,34 +134,34 @@ let mochaTests =
         testCase "isSome works correctly" <| fun _ ->
             let actual = Some true
             Expect.isSome actual "Should be Some"
-        
+
         testCase "isSome fails correctly" <| fun _ ->
-            let case () = 
+            let case () =
                 let actual = None
                 Expect.isSome actual "Should fail"
                 Expect.equal true false "Should not be tested"
             let catch (exn: System.Exception) =
                 Expect.equal exn.Message "Should fail. Expected Some _, was None." "Error messages should be the same"
             Expect.throwsC case catch
-        
+
         testCase "wantSome works correctly" <| fun _ ->
             let actual = Some true
             let actual' = Expect.wantSome actual "Should be Some"
             Expect.equal actual' true "Should be true"
-        
+
         testCase "wantSome fails correctly" <| fun _ ->
-            let case () = 
+            let case () =
                 let actual = None
                 Expect.isSome actual "Should fail"
                 Expect.equal true false "Should not be tested"
             let catch (exn: System.Exception) =
                 Expect.equal exn.Message "Should fail. Expected Some _, was None." "Error messages should be the same"
             Expect.throwsC case catch
-        
+
         testCase "isNone works correctly" <| fun _ ->
             let actual = None
             Expect.isNone actual "Should be Some"
-        
+
         testCase "isNone fails correctly" <| fun _ ->
             let case () =
                 let actual = Some true
@@ -170,49 +170,73 @@ let mochaTests =
             let catch (exn: System.Exception) =
                 Expect.equal exn.Message "Should fail. Expected None, was Some(true)." "Error messages should be the same"
             Expect.throwsC case catch
-        
+
         testCase "isNotNull works correctly" <| fun _ ->
             let actual = "not null"
             Expect.isNotNull actual "Should not be null"
-        
+
         testCase "isNull works correctly" <| fun _ ->
             let actual = null
             Expect.isNull actual "Should not be null"
-        
+
         testCase "isNotNaN works correctly" <| fun _ ->
             let actual = 20.4
             Expect.isNotNaN actual "Should not be nan"
-        
+
         testCase "isNotNaN fails correctly" <| fun _ ->
             let case () =
                 let actual = nan
                 Expect.isNotNaN actual "Should fail"
             Expect.throws case "Should have failed"
-        
+
+        testCase "floatClose works correctly" <| fun _ ->
+            Expect.floatClose Accuracy.low 0.1 0.1 "Should be close enough"
+
+        testCase "floatClose fails correctly" <| fun _ ->
+            let case () =
+                Expect.floatClose Accuracy.low 0.1 2.0 "Should be far enough apart"
+            Expect.throws case "Should have failed"
+
+        testCase "floatLessThanOrClose works correctly" <| fun _ ->
+            Expect.floatLessThanOrClose Accuracy.low 0.1 0.1 "Should be close enough"
+
+        testCase "floatLessThanOrClose fails correctly" <| fun _ ->
+            let case () =
+                Expect.floatLessThanOrClose Accuracy.low 2.0 1.0 "Should be far enough apart"
+            Expect.throws case "Should have failed"
+
+        testCase "floatGreaterThanOrClose works correctly" <| fun _ ->
+            Expect.floatGreaterThanOrClose Accuracy.low 0.123 0.123 "Should be close enough"
+
+        testCase "floatGreaterThanOrClose fails correctly" <| fun _ ->
+            let case () =
+                Expect.floatGreaterThanOrClose Accuracy.low 1.0 2.0 "Should be far enough apart"
+            Expect.throws case "Should have failed"
+
         testCase "failwith fails correctly" <| fun _ ->
             let case () =
                 failwith "Should fail"
             let catch (exn: System.Exception) =
                 Expect.equal exn.Message "Should fail" "Error messages should be the same"
             Expect.throwsC case catch
-        
+
         testCase "failwithf fails correctly" <| fun _ ->
             let case () =
                 failwithf "%s%s" "Should fail" "!"
             let catch (exn: System.Exception) =
                 Expect.equal exn.Message "Should fail!" "Error messages should be the same"
             Expect.throwsC case catch
-        
+
         testCase "isNotInfinity works correctly" <| fun _ ->
             let actual = 20.4
             Expect.isNotInfinity actual "Shouldn't be infinity"
-        
+
         testCase "isNotInfinity fails correctly" <| fun _ ->
             let case () =
                 let actual = infinity
                 Expect.isNotInfinity actual "Should fail"
             Expect.throws case "Should have failed"
-        
+
         testCaseAsync "testCaseAsync works" <|
             async {
                 do! Async.Sleep 3000

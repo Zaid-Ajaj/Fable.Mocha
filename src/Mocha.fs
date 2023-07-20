@@ -15,6 +15,17 @@ type TestCase =
     | TestList of string * TestCase list
     | TestListSequential of string * TestCase list
 
+type Accuracy = { absolute: float; relative: float }
+
+module Accuracy =
+  let inline areCloseLhs a b = abs(a-b)
+  let inline areCloseRhs m a b = m.absolute + m.relative * max (abs a) (abs b)
+  let inline areClose m a b = areCloseLhs a b <= areCloseRhs m a b
+  let low = {absolute=1e-6; relative=1e-3}
+  let medium = {absolute=1e-8; relative=1e-5}
+  let high = {absolute=1e-10; relative=1e-7}
+  let veryHigh = {absolute=1e-12; relative=1e-9}
+
 [<AutoOpen>]
 module Test =
     let testCase name body = SyncTest(name, body, Normal)
@@ -30,7 +41,7 @@ module Test =
         | AsyncTest(name, test, state) ->  TestListSequential(name, [ AsyncTest(name, test, state) ])
         | TestList(name, tests) -> TestListSequential(name, tests)
         | TestListSequential(name, tests) -> TestListSequential(name, tests)
-    
+
     /// Test case computation expression builder
     type TestCaseBuilder (name: string, focusState: FocusState) =
         member _.Zero () = ()
@@ -117,7 +128,7 @@ module Expect =
     let isNull cond = equal (isNull' cond) true
     let isNotNull cond = notEqual (isNull' cond) true
     let isNotNaN cond msg = if Double.IsNaN cond then failwith msg
-    let isNotInfinity cond msg = if Double.IsInfinity cond then failwith msg 
+    let isNotInfinity cond msg = if Double.IsInfinity cond then failwith msg
     let isTrue cond = equal cond true
     let isFalse cond = equal cond false
     let isZero cond = equal cond 0
@@ -202,7 +213,7 @@ module Expect =
         let matchingEls =
             actualEls
             |> List.filter (fun a -> expectedEls |> List.contains a)
-        
+
         let extraEls =
             actualEls
             |> List.filter (fun a -> not (matchingEls |> List.contains a))
@@ -219,6 +230,31 @@ module Expect =
                 missingEls
                 extraEls
             |> failtest
+
+    /// Expects `actual` and `expected` (that are both floats) to be within a
+    /// given `accuracy`.
+    let floatClose accuracy actual expected message =
+        if Double.IsInfinity actual then
+            failtestf "%s. Expected actual to not be infinity, but it was." message
+        elif Double.IsInfinity expected then
+            failtestf "%s. Expected expected to not be infinity, but it was." message
+        elif Accuracy.areClose accuracy actual expected |> not then
+            failtestf
+                "%s. Expected difference to be less than %.20g for accuracy {absolute=%.20g; relative=%.20g}, but was %.20g. actual=%.20g expected=%.20g"
+                message (Accuracy.areCloseRhs accuracy actual expected)
+                accuracy.absolute accuracy.relative
+                (Accuracy.areCloseLhs actual expected)
+                actual expected
+
+    /// Expects `actual` to be less than `expected` or to be within a
+    /// given `accuracy`.
+    let floatLessThanOrClose accuracy actual expected message =
+        if actual>expected then floatClose accuracy actual expected message
+
+    /// Expects `actual` to be greater than `expected` or to be within a
+    /// given `accuracy`.
+    let floatGreaterThanOrClose accuracy actual expected message =
+        if actual<expected then floatClose accuracy actual expected message
 
 module private Html =
     type Node = {
